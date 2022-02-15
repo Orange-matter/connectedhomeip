@@ -65,6 +65,7 @@ static_library("chip-tool-utils") {
     "commands/payload/SetupPayloadVerhoeff.cpp",
     "commands/tests/TestCommand.cpp",
     "config/PersistentStorage.cpp",
+    "config/StaticPersistentStorage.cpp",
   ]
 
   public_deps = [

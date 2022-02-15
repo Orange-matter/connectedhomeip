@@ -19,6 +19,7 @@
 #include <algorithm>
 #include <controller/ExampleOperationalCredentialsIssuer.h>
 #include <credentials/CHIPCert.h>
+#include <credentials/CertUtils.h>
 #include <lib/core/CHIPTLV.h>
 #include <lib/support/CHIPMem.h>
 #include <lib/support/CodeUtils.h>
@@ -140,8 +141,8 @@ CHIP_ERROR ExampleOperationalCredentialsIssuer::GenerateNOCChainAfterValidation(
         PERSISTENT_KEY_OP(mIndex, kOperationalCredentialsRootCertificateStorage, key,
                           ReturnErrorOnFailure(mStorage->SyncSetKeyValue(key, rcac.data(), static_cast<uint16_t>(rcac.size()))));
     }
-
-    ChipDN icac_dn;
+    
+    ChipDN icac_dn; 
     uint16_t icacBufLen = static_cast<uint16_t>(std::min(icac.size(), static_cast<size_t>(UINT16_MAX)));
     PERSISTENT_KEY_OP(mIndex, kOperationalCredentialsIntermediateCertificateStorage, key,
                       err = mStorage->SyncGetKeyValue(key, icac.data(), icacBufLen));
@@ -150,6 +151,23 @@ CHIP_ERROR ExampleOperationalCredentialsIssuer::GenerateNOCChainAfterValidation(
         // Found intermediate certificate in the storage.
         icac.reduce_size(icacBufLen);
         ReturnErrorOnFailure(ExtractSubjectDNFromX509Cert(icac, icac_dn));
+        // Start Added to dev branch
+        ChipCertificateSet chipCertificateSet;
+        uint64_t chipId;
+        constexpr uint32_t chipCertAllocatedLen = kMaxCHIPCertLength;
+        chip::Platform::ScopedMemoryBuffer<uint8_t> chipCert;
+
+        chipCertificateSet.Init(1);
+        
+        ReturnErrorCodeIf(!chipCert.Alloc(chipCertAllocatedLen), CHIP_ERROR_NO_MEMORY);
+        MutableByteSpan chipCertSpan(chipCert.Get(), chipCertAllocatedLen);
+        
+        ReturnErrorOnFailure(ConvertX509CertToChipCert(icac, chipCertSpan));
+        chipCertificateSet.LoadCert(chipCertSpan, BitFlags<CertDecodeFlags>(CertDecodeFlags::kGenerateTBSHash));
+        chipCertificateSet.GetLastCert()->mSubjectDN.GetCertChipId(chipId);
+        mIntermediateIssuerId = chipId;
+        icac_dn.AddAttribute(chip::ASN1::kOID_AttributeType_ChipICAId, mIntermediateIssuerId);
+        // End Added to dev branch 
     }
     // If intermediate certificate not found in the storage, generate new intermediate certificate.
     else
@@ -168,9 +186,11 @@ CHIP_ERROR ExampleOperationalCredentialsIssuer::GenerateNOCChainAfterValidation(
     ChipDN noc_dn;
     ReturnErrorOnFailure(noc_dn.AddAttribute(chip::ASN1::kOID_AttributeType_ChipFabricId, fabricId));
     ReturnErrorOnFailure(noc_dn.AddAttribute(chip::ASN1::kOID_AttributeType_ChipNodeId, nodeId));
-    ReturnErrorOnFailure(noc_dn.AddCATs(cats));
+    ReturnErrorOnFailure(noc_dn.AddCATs(cats)); 
 
     ChipLogProgress(Controller, "Generating NOC");
+    ChipLogDetail(Controller, "- NOC subject DN: %s", ToString(noc_dn).c_str());
+    ChipLogDetail(Controller, "- NOC issuer DN: %s", ToString(icac_dn).c_str());
     X509CertRequestParams noc_request = { 1, mNow, mNow + mValidity, noc_dn, icac_dn };
     return NewNodeOperationalX509Cert(noc_request, pubkey, mIntermediateIssuer, noc);
 }

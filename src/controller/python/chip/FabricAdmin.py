@@ -87,7 +87,7 @@ class FabricAdmin:
             nextFabricId = nextFabricId + 1
         return nextFabricId
 
-    def __init__(self, rcac: bytes = None, icac: bytes = None, fabricIndex: int = None, fabricId: int = None):
+    def __init__(self, rcac: bytes = None, icac: bytes = None, icaKey: bytes = None, fabricIndex: int = None, fabricId: int = None):
         ''' Creates a valid FabricAdmin object with valid RCAC/ICAC, and registers itself as an OperationalCredentialsDelegate
             for other parts of the system (notably, DeviceController) to vend NOCs.
 
@@ -97,10 +97,6 @@ class FabricAdmin:
             fabricIndex:    Local fabric index to be associated with this fabric. If omitted, one will be automatically assigned.
             fabricId:       Local fabric ID to be associated with this fabric. If omitted, one will be automatically assigned.
         '''
-        if (rcac is not None or icac is not None):
-            raise ValueError(
-                "Providing valid rcac/icac values is not supported right now!")
-
         if (fabricId is None):
             self._fabricId = self.AllocateNextFabricId()
         else:
@@ -118,6 +114,15 @@ class FabricAdmin:
                     f"FabricIndex {fabricIndex} is already being managed by an existing FabricAdmin object!")
 
             self._fabricIndex = fabricIndex
+
+        if (rcac is not None):
+            builtins.chipStack.GetStorageManager().SetSdkKey('ExampleCARootCert' + str(self._fabricIndex), rcac)
+
+        if (icac is not None):
+            builtins.chipStack.GetStorageManager().SetSdkKey('ExampleCAIntermediateCert' + str(self._fabricIndex), icac)
+
+        if (icaKey is not None):
+            builtins.chipStack.GetStorageManager().SetSdkKey('ExampleOpCredsICAKey' + str(self._fabricIndex), icaKey)
 
         # Add it to the tracker to prevent future FabricAdmins from managing the same fabric.
         FabricAdmin.activeFabricIdList.add(self._fabricId)

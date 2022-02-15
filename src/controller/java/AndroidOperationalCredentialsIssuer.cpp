@@ -34,6 +34,8 @@ namespace chip {
 namespace Controller {
 constexpr const char kOperationalCredentialsIssuerKeypairStorage[]   = "AndroidDeviceControllerKey";
 constexpr const char kOperationalCredentialsRootCertificateStorage[] = "AndroidCARootCert";
+constexpr const char kOperationalCredentialsIntermediateCertificateStorage[] = "AndroidCAIntermediateCert";
+constexpr const char kOperationalCredentialsIntermediateIssuerKeyPairStorage[] = "AndroidICAKey";
 
 using namespace Credentials;
 using namespace Crypto;
@@ -69,6 +71,23 @@ CHIP_ERROR AndroidOperationalCredentialsIssuer::Initialize(PersistentStorageDele
         ReturnErrorOnFailure(mIssuer.Deserialize(serializedKey));
     }
 
+    keySize = static_cast<uint16_t>(sizeof(serializedKey));
+
+    if (storage.SyncGetKeyValue(kOperationalCredentialsIntermediateIssuerKeyPairStorage, &serializedKey, keySize) != CHIP_NO_ERROR)
+    {
+        // Storage doesn't have an existing keypair. Let's create one and add it to the storage.
+        ReturnErrorOnFailure(mIntermediateIssuer.Initialize());
+        ReturnErrorOnFailure(mIntermediateIssuer.Serialize(serializedKey));
+
+        keySize = static_cast<uint16_t>(sizeof(serializedKey));
+        ReturnErrorOnFailure(storage.SyncSetKeyValue(kOperationalCredentialsIntermediateIssuerKeyPairStorage, &serializedKey, keySize));
+    }
+    else
+    {
+        // Use the keypair from the storage
+        ReturnErrorOnFailure(mIntermediateIssuer.Deserialize(serializedKey));
+    }
+
     mStorage       = &storage;
     mJavaObjectRef = javaObjectRef;
 
@@ -85,7 +104,7 @@ CHIP_ERROR AndroidOperationalCredentialsIssuer::GenerateNOCChainAfterValidation(
     ChipDN rcac_dn;
     uint16_t rcacBufLen = static_cast<uint16_t>(std::min(rcac.size(), static_cast<size_t>(UINT16_MAX)));
     CHIP_ERROR err      = CHIP_NO_ERROR;
-    PERSISTENT_KEY_OP(fabricId, kOperationalCredentialsRootCertificateStorage, key,
+    PERSISTENT_KEY_OP(0UL, kOperationalCredentialsRootCertificateStorage, key,
                       err = mStorage->SyncGetKeyValue(key, rcac.data(), rcacBufLen));
     if (err == CHIP_NO_ERROR)
     {
@@ -103,11 +122,47 @@ CHIP_ERROR AndroidOperationalCredentialsIssuer::GenerateNOCChainAfterValidation(
         ReturnErrorOnFailure(NewRootX509Cert(rcac_request, mIssuer, rcac));
 
         VerifyOrReturnError(CanCastTo<uint16_t>(rcac.size()), CHIP_ERROR_INTERNAL);
-        PERSISTENT_KEY_OP(fabricId, kOperationalCredentialsRootCertificateStorage, key,
+        PERSISTENT_KEY_OP(0UL, kOperationalCredentialsRootCertificateStorage, key,
                           ReturnErrorOnFailure(mStorage->SyncSetKeyValue(key, rcac.data(), static_cast<uint16_t>(rcac.size()))));
     }
 
-    icac.reduce_size(0);
+    ChipDN icac_dn;
+    uint16_t icacBufLen = static_cast<uint16_t>(std::min(icac.size(), static_cast<size_t>(UINT16_MAX)));
+    PERSISTENT_KEY_OP(0UL, kOperationalCredentialsIntermediateCertificateStorage, key,
+                      err = mStorage->SyncGetKeyValue(key, icac.data(), icacBufLen));
+    if (err == CHIP_NO_ERROR)
+    {
+        // Found intermediate certificate in the storage.
+        icac.reduce_size(icacBufLen);
+
+        // Extract its subject DN / ChipICAId
+        ChipCertificateSet chipCertificateSet;
+        uint64_t chipId;
+        constexpr uint32_t chipCertAllocatedLen = kMaxCHIPCertLength;
+        chip::Platform::ScopedMemoryBuffer<uint8_t> chipCert;
+
+        chipCertificateSet.Init(1);
+
+        ReturnErrorCodeIf(!chipCert.Alloc(chipCertAllocatedLen), CHIP_ERROR_NO_MEMORY);
+        MutableByteSpan chipCertSpan(chipCert.Get(), chipCertAllocatedLen);
+
+        ReturnErrorOnFailure(ConvertX509CertToChipCert(icac, chipCertSpan));
+        chipCertificateSet.LoadCert(chipCertSpan, BitFlags<CertDecodeFlags>(CertDecodeFlags::kGenerateTBSHash));
+        chipCertificateSet.GetLastCert()->mSubjectDN.GetCertChipId(chipId);
+        mIntermediateIssuerId = chipId;
+        icac_dn.AddAttribute(chip::ASN1::kOID_AttributeType_ChipICAId, mIntermediateIssuerId);
+    }
+    else
+    {
+        icac_dn.AddAttribute(chip::ASN1::kOID_AttributeType_ChipICAId, mIntermediateIssuerId);
+        ChipLogProgress(Controller, "Generating ICAC");
+        chip::Credentials::X509CertRequestParams icac_request = { 0, mNow, mNow + mValidity, icac_dn, rcac_dn };
+        ReturnErrorOnFailure(NewICAX509Cert(icac_request, mIntermediateIssuer.Pubkey(), mIssuer, icac));
+
+        VerifyOrReturnError(CanCastTo<uint16_t>(icac.size()), CHIP_ERROR_INTERNAL);
+        PERSISTENT_KEY_OP(0UL, kOperationalCredentialsIntermediateCertificateStorage, key,
+                          err = mStorage->SyncSetKeyValue(key, icac.data(), static_cast<uint16_t>(icac.size())));
+    }
 
     ChipDN noc_dn;
     ReturnErrorOnFailure(noc_dn.AddAttribute(chip::ASN1::kOID_AttributeType_ChipFabricId, fabricId));
@@ -172,16 +227,18 @@ CHIP_ERROR AndroidOperationalCredentialsIssuer::GenerateNOCChain(const ByteSpan 
     ReturnErrorCodeIf(!noc.Alloc(kMaxCHIPDERCertLength), CHIP_ERROR_NO_MEMORY);
     MutableByteSpan nocSpan(noc.Get(), kMaxCHIPDERCertLength);
 
+    Platform::ScopedMemoryBuffer<uint8_t> icac;
+    ReturnErrorCodeIf(!icac.Alloc(kMaxCHIPDERCertLength), CHIP_ERROR_NO_MEMORY);
+    MutableByteSpan icacSpan(icac.Get(), kMaxCHIPDERCertLength);
+
     Platform::ScopedMemoryBuffer<uint8_t> rcac;
     ReturnErrorCodeIf(!rcac.Alloc(kMaxCHIPDERCertLength), CHIP_ERROR_NO_MEMORY);
     MutableByteSpan rcacSpan(rcac.Get(), kMaxCHIPDERCertLength);
 
-    MutableByteSpan icacSpan;
-
     ReturnErrorOnFailure(
         GenerateNOCChainAfterValidation(assignedId, mNextFabricId, chip::kUndefinedCATs, pubkey, rcacSpan, icacSpan, nocSpan));
 
-    onCompletion->mCall(onCompletion->mContext, CHIP_NO_ERROR, nocSpan, ByteSpan(), rcacSpan, Optional<AesCcm128KeySpan>(),
+    onCompletion->mCall(onCompletion->mContext, CHIP_NO_ERROR, nocSpan, icacSpan, rcacSpan, Optional<AesCcm128KeySpan>(),
                         Optional<NodeId>());
 
     jbyteArray javaCsr;
