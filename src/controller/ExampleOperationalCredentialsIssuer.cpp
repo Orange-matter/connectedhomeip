@@ -19,6 +19,7 @@
 #include <algorithm>
 #include <controller/ExampleOperationalCredentialsIssuer.h>
 #include <credentials/CHIPCert.h>
+#include <credentials/CertUtils.h>
 #include <lib/core/CHIPTLV.h>
 #include <lib/support/CHIPMem.h>
 #include <lib/support/CodeUtils.h>
@@ -141,8 +142,8 @@ CHIP_ERROR ExampleOperationalCredentialsIssuer::GenerateNOCChainAfterValidation(
         PERSISTENT_KEY_OP(mIndex, kOperationalCredentialsRootCertificateStorage, key,
                           ReturnErrorOnFailure(mStorage->SyncSetKeyValue(key, rcac.data(), static_cast<uint16_t>(rcac.size()))));
     }
-
-    ChipDN icac_dn;
+    
+    ChipDN icac_dn; 
     uint16_t icacBufLen = static_cast<uint16_t>(std::min(icac.size(), static_cast<size_t>(UINT16_MAX)));
     PERSISTENT_KEY_OP(mIndex, kOperationalCredentialsIntermediateCertificateStorage, key,
                       err = mStorage->SyncGetKeyValue(key, icac.data(), icacBufLen));
@@ -169,9 +170,12 @@ CHIP_ERROR ExampleOperationalCredentialsIssuer::GenerateNOCChainAfterValidation(
     ChipDN noc_dn;
     ReturnErrorOnFailure(noc_dn.AddAttribute(chip::ASN1::kOID_AttributeType_ChipFabricId, fabricId));
     ReturnErrorOnFailure(noc_dn.AddAttribute(chip::ASN1::kOID_AttributeType_ChipNodeId, nodeId));
-    ReturnErrorOnFailure(noc_dn.AddCATs(cats));
+    ReturnErrorOnFailure(noc_dn.AddCATs(cats)); 
 
     ChipLogProgress(Controller, "Generating NOC");
+    ChipLogDetail(Controller, "- NOC subject DN: %s", ToString(noc_dn).c_str());
+    ChipLogDetail(Controller, "- NOC issuer DN: %s", ToString(icac_dn).c_str());
+    ChipLogDetail(Controller, "- ICAC issuer DN: %s", ToString(rcac_dn).c_str());
     X509CertRequestParams noc_request = { 1, mNow, mNow + mValidity, noc_dn, icac_dn };
     return NewNodeOperationalX509Cert(noc_request, pubkey, mIntermediateIssuer, noc);
 }
