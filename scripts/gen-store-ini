@@ -1,7 +1,7 @@
 #!/bin/bash
 
 usage() { 
-    echo "Usage: $0 -r <root certificate> -i <intermediate certificate> -k <intermediate private key> -f <fabric id> -n <node id>"
+    echo "Usage: $(basename $0) -r <root certificate> -i <intermediate certificate> -k <intermediate private key> -f <fabric id> -n <node id>"
     echo ""
     echo "    Notes :"
     echo "    1. certificates and private key expected in PEM format"
