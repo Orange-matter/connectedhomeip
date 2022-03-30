@@ -144,6 +144,26 @@
             ]
         },
         {
+            "name": "Chip Tool - discover commissionables",
+            "type": "cppdbg",
+            "request": "launch",
+            "program": "${workspaceFolder}/bin/chip-tool",
+            "args": ["discover", "commissionables"],
+            "stopAtEntry": false,
+            "cwd": "${workspaceFolder}",
+            "environment": [],
+            "externalConsole": false,
+            "MIMode": "gdb",
+            "preLaunchTask": "Build Chip Tool",
+            "setupCommands": [
+                {
+                    "description": "Enable pretty-printing for gdb",
+                    "text": "-enable-pretty-printing",
+                    "ignoreFailures": true
+                }
+            ]
+        },
+        {
             "name": "Chip Tool - light on",
             "type": "cppdbg",
             "request": "launch",

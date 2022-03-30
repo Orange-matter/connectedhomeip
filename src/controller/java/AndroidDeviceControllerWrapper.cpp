@@ -163,7 +163,7 @@ AndroidDeviceControllerWrapper::AllocateNew(JavaVM * vm, jobject deviceControlle
         return nullptr;
     }
 
-    *errInfoOnFailure = opCredsIssuer->GenerateNOCChainAfterValidation(nodeId, fabricId, ephemeralKey.Pubkey(), rcacSpan,
+    *errInfoOnFailure = opCredsIssuer->GenerateNOCChainAfterValidation(nodeId, fabricId, chip::kUndefinedCATs, ephemeralKey.Pubkey(), rcacSpan,
                                                                        icacSpan, nocSpan);
     if (*errInfoOnFailure != CHIP_NO_ERROR)
     {
