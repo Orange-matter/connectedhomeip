@@ -134,7 +134,7 @@ CHIP_ERROR AndroidOperationalCredentialsIssuer::GenerateNOCChainAfterValidation(
     {
         // Found intermediate certificate in the storage.
         icac.reduce_size(icacBufLen);
- /* 
+  
         // Extract its subject DN / ChipICAId
         ChipCertificateSet chipCertificateSet;
         uint64_t chipId;
@@ -152,7 +152,7 @@ CHIP_ERROR AndroidOperationalCredentialsIssuer::GenerateNOCChainAfterValidation(
         chipCertificateSet.GetLastCert()->mSubjectDN.GetCertChipId(chipId);
         mIntermediateIssuerId = chipId;
         icac_dn.AddAttribute(chip::ASN1::kOID_AttributeType_ChipICAId, mIntermediateIssuerId);
-        */
+        
     }
     else
     {
