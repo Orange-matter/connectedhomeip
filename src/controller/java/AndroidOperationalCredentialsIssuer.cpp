@@ -58,6 +58,10 @@ CHIP_ERROR AndroidOperationalCredentialsIssuer::Initialize(PersistentStorageDele
 
     if (storage.SyncGetKeyValue(kOperationalCredentialsIssuerKeypairStorage, serializedKey.Bytes(), keySize) != CHIP_NO_ERROR)
     {
+        // Orange customization: key pair must be pre loaded
+        ChipLogProgress(Controller, "Intermediate certificate key pair is not found in storage");
+        ReturnErrorOnFailure(CHIP_ERROR_NOT_IMPLEMENTED);
+
         // Storage doesn't have an existing keypair. Let's create one and add it to the storage.
         ReturnErrorOnFailure(mIssuer.Initialize());
         ReturnErrorOnFailure(mIssuer.Serialize(serializedKey));
@@ -88,7 +92,8 @@ CHIP_ERROR AndroidOperationalCredentialsIssuer::GenerateNOCChainAfterValidation(
     ChipDN rcac_dn;
     uint16_t rcacBufLen = static_cast<uint16_t>(std::min(rcac.size(), static_cast<size_t>(UINT16_MAX)));
     CHIP_ERROR err      = CHIP_NO_ERROR;
-    PERSISTENT_KEY_OP(fabricId, kOperationalCredentialsRootCertificateStorage, key,
+    // node is set to 0L instead of fabricId as root and intermediate certificates do not depend on fabric
+    PERSISTENT_KEY_OP(0L, kOperationalCredentialsRootCertificateStorage, key,
                       err = mStorage->SyncGetKeyValue(key, rcac.data(), rcacBufLen));
     if (err == CHIP_NO_ERROR)
     {
@@ -99,6 +104,10 @@ CHIP_ERROR AndroidOperationalCredentialsIssuer::GenerateNOCChainAfterValidation(
     // If root certificate not found in the storage, generate new root certificate.
     else
     {
+        // Orange customization: key pair must be pre loaded
+        ChipLogError(Controller, "Root certificate is not found in storage");
+        ReturnErrorOnFailure(CHIP_ERROR_NOT_IMPLEMENTED);
+
         ReturnErrorOnFailure(rcac_dn.AddAttribute(chip::ASN1::kOID_AttributeType_ChipRootId, mIssuerId));
 
         ChipLogProgress(Controller, "Generating RCAC");
@@ -113,7 +122,8 @@ CHIP_ERROR AndroidOperationalCredentialsIssuer::GenerateNOCChainAfterValidation(
     ChipDN icac_dn;
     uint16_t icacBufLen = static_cast<uint16_t>(std::min(icac.size(), static_cast<size_t>(UINT16_MAX)));
 
-    PERSISTENT_KEY_OP(fabricId, kOperationalCredentialsIntermediateCertificateStorage, key,
+    // node is set to 0L instead of fabricId as root and intermediate certificates do not depend on fabric
+    PERSISTENT_KEY_OP(0UL, kOperationalCredentialsIntermediateCertificateStorage, key,
                       err = mStorage->SyncGetKeyValue(key, icac.data(), icacBufLen));
     if (err == CHIP_NO_ERROR)
     {
@@ -121,10 +131,11 @@ CHIP_ERROR AndroidOperationalCredentialsIssuer::GenerateNOCChainAfterValidation(
         icac.reduce_size(rcacBufLen);
         ReturnErrorOnFailure(ExtractSubjectDNFromX509Cert(icac, icac_dn));
     }
-        // If intermediate certificate not found in the storage, generate new intermediate certificate.
     else
     {
-        // TODO : generate intermediate certificate
+        // Orange customization: intermediate certificate must be pre loaded
+        ChipLogError(Controller, "Intermediate certificate is not found in storage");
+        ReturnErrorOnFailure(CHIP_ERROR_NOT_IMPLEMENTED);
     }
 
     ChipDN noc_dn;

@@ -16,8 +16,8 @@ class Persisted(context: Context) {
     companion object {
         private const val FABRIC_ID_KEY = "fabric-id"
         private const val NODE_ID_KEY = "node-id"
-        private const val ROOT_CERT_KEY = "AndroidCARootCert1"
-        private const val INTERMEDIATE_CERT_KEY = "AndroidCAIntermediateCert1"
+        private const val ROOT_CERT_KEY = "AndroidCARootCert0"
+        private const val INTERMEDIATE_CERT_KEY = "AndroidCAIntermediateCert0"
         private const val INTERMEDIATE_KEY_PAIR_KEY = "AndroidDeviceControllerKey"
     }
 }
