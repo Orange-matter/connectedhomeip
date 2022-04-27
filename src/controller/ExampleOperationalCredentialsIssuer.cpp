@@ -129,7 +129,9 @@ CHIP_ERROR ExampleOperationalCredentialsIssuer::GenerateNOCChainAfterValidation(
         rcac.reduce_size(rcacBufLen);
         ReturnErrorOnFailure(ExtractSubjectDNFromX509Cert(rcac, rcac_dn));
         ReturnErrorOnFailure(rcac_dn.GetCertChipId(rcacId));
-        VerifyOrReturnError(rcacId == mIssuerId, CHIP_ERROR_INTERNAL);
+        //[ORANGE] : disable suspicious check. mIssuerId is never assigned, use certificate data as source of truth instead
+        //VerifyOrReturnError(rcacId == mIssuerId, CHIP_ERROR_INTERNAL);
+        SetIssuerId(rcacId);
     }
     // If root certificate not found in the storage, generate new root certificate.
     else
@@ -156,7 +158,9 @@ CHIP_ERROR ExampleOperationalCredentialsIssuer::GenerateNOCChainAfterValidation(
         icac.reduce_size(icacBufLen);
         ReturnErrorOnFailure(ExtractSubjectDNFromX509Cert(icac, icac_dn));
         ReturnErrorOnFailure(icac_dn.GetCertChipId(icacId));
-        VerifyOrReturnError(icacId == mIntermediateIssuerId, CHIP_ERROR_INTERNAL);
+        //[ORANGE] : disable suspicious check. mIntermediateIssuerId is never assigned, use certificate data as source of truth instead
+        //VerifyOrReturnError(icacId == mIntermediateIssuerId, CHIP_ERROR_INTERNAL);
+        SetIntermediateIssuerId(icacId);
     }
     // If intermediate certificate not found in the storage, generate new intermediate certificate.
     else

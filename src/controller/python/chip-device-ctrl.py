@@ -30,6 +30,7 @@ from chip import FabricAdmin
 from chip import ChipStack
 from chip import ChipCommissionableNodeCtrl
 from chip import exceptions
+from chip.storage import PersistentStorage
 import argparse
 import ctypes
 import sys
@@ -178,12 +179,24 @@ class DeviceMgrCmd(Cmd):
         DeviceMgrCmd.command_names.sort()
 
         self.bleMgr = None
-
+        matterHome = os.getenv('MATTER_HOME')
+        if matterHome is None:
+            print("Error : Environment variable MATTER_HOME need to be defined")
+            raise Exception("Environment variable MATTER_HOME not defined")
+        staticPersistenceStorage = PersistentStorage(matterHome + '/.matter/chip-device-ctrl-storage.json')
         self.chipStack = ChipStack.ChipStack(
             bluetoothAdapter=bluetoothAdapter, persistentStoragePath='/tmp/chip-device-ctrl-storage.json')
-        self.fabricAdmin = FabricAdmin.FabricAdmin()
-        self.devCtrl = self.fabricAdmin.NewController(
-            nodeId=controllerNodeId, useTestCommissioner=True)
+        adminList = staticPersistenceStorage.GetReplKey('fabricAdmins')
+        #TODO: ORANGE Add vendor Id to fit new signature
+        self.fabricAdmin = FabricAdmin.FabricAdmin(
+            fabricId=adminList["1"]['fabricId'], 
+            fabricIndex=1,
+            rcac=staticPersistenceStorage.GetSdkKey('ExampleCARootCert'),
+            rcaKey=staticPersistenceStorage.GetSdkKey('ExampleOpCredsCAKey'),
+            icac=staticPersistenceStorage.GetSdkKey('ExampleCAIntermediateCert'),
+            icaKey=staticPersistenceStorage.GetSdkKey('ExampleOpCredsICAKey')
+            )
+        self.devCtrl = self.fabricAdmin.NewController(nodeId = controllerNodeId, useTestCommissioner = True)
 
         self.commissionableNodeCtrl = ChipCommissionableNodeCtrl.ChipCommissionableNodeController(
             self.chipStack)
