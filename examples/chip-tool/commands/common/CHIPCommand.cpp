@@ -70,6 +70,7 @@ CHIP_ERROR CHIPCommand::MaybeSetUpStack()
 #endif
 
     ReturnLogErrorOnFailure(mDefaultStorage.Init());
+    ReturnLogErrorOnFailure(mCommissionerStorage.Init()); 
 
     chip::Controller::FactoryInitParams factoryInitParams;
 
@@ -109,9 +110,9 @@ CHIP_ERROR CHIPCommand::MaybeSetUpStack()
     }
 
     ReturnLogErrorOnFailure(InitializeCommissioner(kIdentityNull, kIdentityNullFabricId, trustStore));
-    ReturnLogErrorOnFailure(InitializeCommissioner(kIdentityAlpha, kIdentityAlphaFabricId, trustStore));
-    ReturnLogErrorOnFailure(InitializeCommissioner(kIdentityBeta, kIdentityBetaFabricId, trustStore));
-    ReturnLogErrorOnFailure(InitializeCommissioner(kIdentityGamma, kIdentityGammaFabricId, trustStore));
+    ReturnLogErrorOnFailure(InitializeCommissioner(kIdentityAlpha, mCommissionerStorage.GetFabricId(), trustStore));
+//    ReturnLogErrorOnFailure(InitializeCommissioner(kIdentityBeta, kIdentityBetaFabricId, trustStore));
+//    ReturnLogErrorOnFailure(InitializeCommissioner(kIdentityGamma, kIdentityGammaFabricId, trustStore));
 
     std::string name        = GetIdentity();
     chip::FabricId fabricId = strtoull(name.c_str(), nullptr, 0);
@@ -160,8 +161,8 @@ CHIP_ERROR CHIPCommand::MaybeTearDownStack()
     //
     ReturnLogErrorOnFailure(ShutdownCommissioner(kIdentityNull));
     ReturnLogErrorOnFailure(ShutdownCommissioner(kIdentityAlpha));
-    ReturnLogErrorOnFailure(ShutdownCommissioner(kIdentityBeta));
-    ReturnLogErrorOnFailure(ShutdownCommissioner(kIdentityGamma));
+//    ReturnLogErrorOnFailure(ShutdownCommissioner(kIdentityBeta));
+//    ReturnLogErrorOnFailure(ShutdownCommissioner(kIdentityGamma));
 
     std::string name        = GetIdentity();
     chip::FabricId fabricId = strtoull(name.c_str(), nullptr, 0);
@@ -334,7 +335,8 @@ CHIP_ERROR CHIPCommand::InitializeCommissioner(std::string key, chip::FabricId f
         // TODO - OpCreds should only be generated for pairing command
         //        store the credentials in persistent storage, and
         //        generate when not available in the storage.
-        ReturnLogErrorOnFailure(mCommissionerStorage.Init(key.c_str()));
+        //ReturnLogErrorOnFailure(mCommissionerStorage.Init(key.c_str()));
+        //ReturnLogErrorOnFailure(mCommissionerStorage.Init());
         ReturnLogErrorOnFailure(mCredIssuerCmds->InitializeCredentialsIssuer(mCommissionerStorage));
 
         chip::MutableByteSpan nocSpan(noc.Get(), chip::Controller::kMaxCHIPDERCertLength);

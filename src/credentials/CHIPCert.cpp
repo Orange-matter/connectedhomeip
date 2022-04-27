@@ -47,6 +47,7 @@
 #if CHIP_CRYPTO_HSM
 #include <crypto/hsm/CHIPCryptoPALHsm.h>
 #endif
+#include "CertUtils.h"
 
 namespace chip {
 namespace Credentials {
@@ -426,6 +427,7 @@ exit:
     return err;
 }
 
+
 CHIP_ERROR ChipCertificateSet::FindValidCert(const ChipDN & subjectDN, const CertificateKeyId & subjectKeyId,
                                              ValidationContext & context, BitFlags<CertValidateFlags> validateFlags, uint8_t depth,
                                              const ChipCertificateData ** certData)
@@ -443,10 +445,14 @@ CHIP_ERROR ChipCertificateSet::FindValidCert(const ChipDN & subjectDN, const Cer
         ExitNow();
     }
 
+    ChipLogDetail(Crypto, "Looking for DN: %s", ToString(subjectDN).c_str());
+
     // For each cert in the set...
     for (uint8_t i = 0; i < mCertCount; i++)
     {
         ChipCertificateData * candidateCert = &mCerts[i];
+
+        ChipLogDetail(Crypto, "- Candidate DN: %s", ToString(candidateCert->mSubjectDN).c_str());
 
         // Skip the certificate if its subject DN and key id do not match the input criteria.
         if (!subjectDN.IsEmpty() && !candidateCert->mSubjectDN.IsEqual(subjectDN))
@@ -619,6 +625,8 @@ CHIP_ERROR ChipDN::GetCertType(uint8_t & certType) const
     uint8_t rdnCount     = RDNCount();
 
     certType = kCertType_NotSpecified;
+
+//    ChipLogDetail(Crypto, "* Get Cert type of DN: %s", ToString(*this).c_str());
 
     for (uint8_t i = 0; i < rdnCount; i++)
     {
