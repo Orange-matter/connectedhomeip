@@ -19,6 +19,7 @@
 #pragma once
 
 #include "../../config/PersistentStorage.h"
+#include "../../config/StaticPersistentStorage.h"
 #include "Command.h"
 #include <commands/common/CredentialIssuerCommands.h>
 #include <commands/example/ExampleCredentialIssuerCommands.h>
@@ -99,7 +100,7 @@ protected:
     virtual void Shutdown() {}
 
     PersistentStorage mDefaultStorage;
-    PersistentStorage mCommissionerStorage;
+    StaticPersistentStorage mCommissionerStorage;
     chip::Credentials::GroupDataProviderImpl mGroupDataProvider{ kMaxGroupsPerFabric, kMaxGroupKeysPerFabric };
     CredentialIssuerCommands * mCredIssuerCmds;
 
