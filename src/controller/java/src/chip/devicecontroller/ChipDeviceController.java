@@ -47,7 +47,13 @@ public class ChipDeviceController {
 
   /** Returns a new {@link ChipDeviceController} with the specified parameters. */
   public ChipDeviceController(ControllerParams params) {
-    deviceControllerPtr = newDeviceController(params);
+    // TODO : Orange adaptation => migrate to ControllerParams and remove node id + fabric id
+    deviceControllerPtr = newDeviceController(params, 0, 0);
+  }
+
+  // TODO : Orange adaptation => migrate to new constructor above
+  public ChipDeviceController(long nodeId, long fabricId) {
+    deviceControllerPtr = newDeviceController(ControllerParams.newBuilder().build(), nodeId, fabricId);
   }
 
   public void setCompletionListener(CompletionListener listener) {
@@ -489,7 +495,8 @@ public class ChipDeviceController {
       long devicePtr,
       List<ChipEventPath> eventPaths);
 
-  private native long newDeviceController(ControllerParams params);
+  // TODO: Orange initial change with nodeId + fabricID=> migrate to use ControllerParams
+  private native long newDeviceController(ControllerParams params, long nodeId, long fabricId);
 
   private native void pairDevice(
       long deviceControllerPtr,
