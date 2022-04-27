@@ -155,7 +155,7 @@ void JNI_OnUnload(JavaVM * jvm, void * reserved)
     chip::Platform::MemoryShutdown();
 }
 
-JNI_METHOD(jlong, newDeviceController)(JNIEnv * env, jobject self, jobject controllerParams)
+JNI_METHOD(jlong, newDeviceController)(JNIEnv * env, jobject self, jobject controllerParams, jlong node_id, jlong fabric_id)
 {
     chip::DeviceLayer::StackLock lock;
     CHIP_ERROR err                           = CHIP_NO_ERROR;
@@ -167,7 +167,7 @@ JNI_METHOD(jlong, newDeviceController)(JNIEnv * env, jobject self, jobject contr
     // Retrieve initialization params.
     jmethodID getUdpListenPort;
     err = chip::JniReferences::GetInstance().FindMethod(env, controllerParams, "getUdpListenPort", PARAMS_CLASS, &getUdpListenPort);
-    SuccessOrExit(err);
+
 
     jmethodID getKeypairDelegate;
     err = chip::JniReferences::GetInstance().FindMethod(env, controllerParams, "getKeypairDelegate", PARAMS_CLASS,
@@ -199,9 +199,10 @@ JNI_METHOD(jlong, newDeviceController)(JNIEnv * env, jobject self, jobject contr
         std::unique_ptr<chip::Controller::AndroidOperationalCredentialsIssuer> opCredsIssuer(
             new chip::Controller::AndroidOperationalCredentialsIssuer());
         wrapper = AndroidDeviceControllerWrapper::AllocateNew(
-            sJVM, self, kLocalDeviceId, chip::kUndefinedCATs, &DeviceLayer::SystemLayer(), DeviceLayer::TCPEndPointManager(),
+            sJVM, self, node_id, fabric_id, chip::kUndefinedCATs, &DeviceLayer::SystemLayer(), DeviceLayer::TCPEndPointManager(),
             DeviceLayer::UDPEndPointManager(), std::move(opCredsIssuer), keypairDelegate, rootCertificate, intermediateCertificate,
             operationalCertificate, ipk, listenPort, &err);
+
         SuccessOrExit(err);
     }
 
