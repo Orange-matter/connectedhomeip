@@ -19,6 +19,7 @@
 #pragma once
 
 #include "../../config/PersistentStorage.h"
+#include "../../config/StaticPersistentStorage.h"
 #include "Command.h"
 #include <commands/common/CredentialIssuerCommands.h>
 #include <commands/example/ExampleCredentialIssuerCommands.h>
@@ -115,7 +116,7 @@ protected:
     void ExecuteDeferredCleanups();
 
     PersistentStorage mDefaultStorage;
-    PersistentStorage mCommissionerStorage;
+    StaticPersistentStorage mCommissionerStorage;
     chip::PersistentStorageOperationalKeystore mOperationalKeystore;
 
     chip::Credentials::GroupDataProviderImpl mGroupDataProvider{ kMaxGroupsPerFabric, kMaxGroupKeysPerFabric };

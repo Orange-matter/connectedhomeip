@@ -153,7 +153,7 @@ void JNI_OnUnload(JavaVM * jvm, void * reserved)
     chip::Platform::MemoryShutdown();
 }
 
-JNI_METHOD(jlong, newDeviceController)(JNIEnv * env, jobject self)
+JNI_METHOD(jlong, newDeviceController)(JNIEnv * env, jobject self, jlong node_id, jlong fabric_id)
 {
     chip::DeviceLayer::StackLock lock;
     CHIP_ERROR err                           = CHIP_NO_ERROR;
@@ -163,9 +163,9 @@ JNI_METHOD(jlong, newDeviceController)(JNIEnv * env, jobject self)
     ChipLogProgress(Controller, "newDeviceController() called");
     std::unique_ptr<chip::Controller::AndroidOperationalCredentialsIssuer> opCredsIssuer(
         new chip::Controller::AndroidOperationalCredentialsIssuer());
-    wrapper = AndroidDeviceControllerWrapper::AllocateNew(sJVM, self, kLocalDeviceId, chip::kUndefinedCATs,
-                                                          &DeviceLayer::SystemLayer(), DeviceLayer::TCPEndPointManager(),
-                                                          DeviceLayer::UDPEndPointManager(), std::move(opCredsIssuer), &err);
+    wrapper = AndroidDeviceControllerWrapper::AllocateNew(sJVM, self, node_id, fabric_id, &DeviceLayer::SystemLayer(),
+                                                          DeviceLayer::TCPEndPointManager(), DeviceLayer::UDPEndPointManager(),
+                                                          std::move(opCredsIssuer), &err);
     SuccessOrExit(err);
 
     // Create and start the IO thread. Must be called after Controller()->Init
