@@ -22,6 +22,7 @@
 #include "../../config/PersistentStorage.h"
 #endif // CONFIG_USE_LOCAL_STORAGE
 
+#include "../../config/StaticPersistentStorage.h"
 #include "Command.h"
 
 #include <commands/common/CredentialIssuerCommands.h>
@@ -119,8 +120,11 @@ protected:
 
 #ifdef CONFIG_USE_LOCAL_STORAGE
     PersistentStorage mDefaultStorage;
-    PersistentStorage mCommissionerStorage;
+    //TODO: ORANGE See what to do with this name conflict
+    // PersistentStorage mCommissionerStorage;
 #endif // CONFIG_USE_LOCAL_STORAGE
+
+    StaticPersistentStorage mCommissionerStorage;
     chip::PersistentStorageOperationalKeystore mOperationalKeystore;
     chip::Credentials::PersistentStorageOpCertStore mOpCertStore;
 

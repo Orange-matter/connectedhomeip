@@ -71,7 +71,9 @@ public:
      **/
     CHIP_ERROR Initialize(PersistentStorageDelegate & storage, jobject javaObjectRef);
 
-    void SetIssuerId(uint32_t id) { mIssuerId = id; }
+    void SetIssuerId(uint64_t id) { mIssuerId = id; }
+
+    void SetIntermediateIssuerId(uint64_t id) { mIntermediateIssuerId = id; }
 
     void SetCurrentEpoch(uint32_t epoch) { mNow = epoch; }
 
@@ -88,8 +90,10 @@ public:
 
 private:
     Crypto::P256Keypair mIssuer;
+    Crypto::P256Keypair mIntermediateIssuer;
     bool mInitialized  = false;
-    uint32_t mIssuerId = 0;
+    uint64_t mIssuerId = 0;
+    uint64_t mIntermediateIssuerId = 1;
     uint32_t mNow      = 0;
 
     // By default, let's set validity to 10 years

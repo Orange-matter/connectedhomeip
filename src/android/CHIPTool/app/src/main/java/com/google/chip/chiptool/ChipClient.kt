@@ -38,12 +38,14 @@ object ChipClient {
   private const val TAG = "ChipClient"
   private lateinit var chipDeviceController: ChipDeviceController
   private lateinit var androidPlatform: AndroidChipPlatform
+  var nodeId: Long = 0
+  var fabricId: Long = 0
 
   fun getDeviceController(context: Context): ChipDeviceController {
     getAndroidChipPlatform(context)
 
     if (!this::chipDeviceController.isInitialized) {
-      chipDeviceController = ChipDeviceController()
+      chipDeviceController = ChipDeviceController(nodeId, fabricId)
     }
     return chipDeviceController
   }
