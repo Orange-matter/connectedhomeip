@@ -83,7 +83,9 @@ class FabricAdmin:
             nextAdminIndex = nextAdminIndex + 1
         return nextAdminIndex
 
-    def __init__(self, vendorId: int, adminIndex: int = None, fabricId: int = 1):
+    # FIXME Orange : added certificates & keys could no longer stored here using _fabricIndex that no longer exists ...
+    #     => check how standard python controller has evolved its storage
+    def __init__(self, vendorId: int, rcac: bytes = None, rcaKey: bytes = None, icac: bytes = None, icaKey: bytes = None, adminIndex: int = None, fabricId: int = 1):
         ''' Creates a valid FabricAdmin object with valid RCAC/ICAC, and registers itself as an OperationalCredentialsDelegate
             for other parts of the system (notably, DeviceController) to vend NOCs.
 
@@ -103,6 +105,19 @@ class FabricAdmin:
 
         self.vendorId = vendorId
         self._fabricId = fabricId
+
+        # FIXME Orange : _fabricIndex no longer available here ...
+        if (rcac is not None):
+            builtins.chipStack.GetStorageManager().SetSdkKey('ExampleCARootCert' + str(self._fabricIndex), rcac)
+
+        if (rcaKey is not None):
+            builtins.chipStack.GetStorageManager().SetSdkKey('ExampleOpCredsCAKey' + str(self._fabricIndex), rcaKey)
+
+        if (icac is not None):
+            builtins.chipStack.GetStorageManager().SetSdkKey('ExampleCAIntermediateCert' + str(self._fabricIndex), icac)
+
+        if (icaKey is not None):
+            builtins.chipStack.GetStorageManager().SetSdkKey('ExampleOpCredsICAKey' + str(self._fabricIndex), icaKey)
 
         if (adminIndex is None):
             self._adminIndex = self.AllocateNextAdminIndex()

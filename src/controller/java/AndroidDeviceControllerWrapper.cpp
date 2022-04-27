@@ -70,11 +70,12 @@ void AndroidDeviceControllerWrapper::CallJavaMethod(const char * methodName, jin
 }
 
 AndroidDeviceControllerWrapper * AndroidDeviceControllerWrapper::AllocateNew(
-    JavaVM * vm, jobject deviceControllerObj, chip::NodeId nodeId, const chip::CATValues & cats, chip::System::Layer * systemLayer,
+    JavaVM * vm, jobject deviceControllerObj, chip::NodeId nodeId, chip::FabricId fabricId, const chip::CATValues & cats, chip::System::Layer * systemLayer,
     chip::Inet::EndPointManager<Inet::TCPEndPoint> * tcpEndPointManager,
     chip::Inet::EndPointManager<Inet::UDPEndPoint> * udpEndPointManager, AndroidOperationalCredentialsIssuerPtr opCredsIssuerPtr,
     jobject keypairDelegate, jbyteArray rootCertificate, jbyteArray intermediateCertificate, jbyteArray nodeOperationalCertificate,
     jbyteArray ipkEpochKey, uint16_t listenPort, CHIP_ERROR * errInfoOnFailure)
+
 {
     if (errInfoOnFailure == nullptr)
     {
@@ -229,9 +230,8 @@ AndroidDeviceControllerWrapper * AndroidDeviceControllerWrapper::AllocateNew(
         setupParams.operationalKeypair                   = &ephemeralKey;
         setupParams.hasExternallyOwnedOperationalKeypair = false;
 
-        *errInfoOnFailure = opCredsIssuer->GenerateNOCChainAfterValidation(nodeId,
-                                                                           /* fabricId = */ 1, cats, ephemeralKey.Pubkey(),
-                                                                           rcacSpan, icacSpan, nocSpan);
+        *errInfoOnFailure = opCredsIssuer->GenerateNOCChainAfterValidation(nodeId, fabricId, cats, ephemeralKey.Pubkey(), rcacSpan,
+                                                                       icacSpan, nocSpan);
 
         if (*errInfoOnFailure != CHIP_NO_ERROR)
         {
@@ -242,6 +242,8 @@ AndroidDeviceControllerWrapper * AndroidDeviceControllerWrapper::AllocateNew(
         setupParams.controllerICAC = icacSpan;
         setupParams.controllerNOC  = nocSpan;
     }
+
+    setupParams.controllerVendorId  = chip::VendorId::TestVendor1;
 
     *errInfoOnFailure = DeviceControllerFactory::GetInstance().Init(initParams);
     if (*errInfoOnFailure != CHIP_NO_ERROR)
@@ -390,16 +392,19 @@ void AndroidDeviceControllerWrapper::OnCommissioningComplete(NodeId deviceId, CH
     {
         env->ReleaseStringUTFChars(ssidStr, ssid);
         env->DeleteGlobalRef(ssidStr);
+        ssidStr = nullptr;
     }
     if (passwordStr != nullptr)
     {
         env->ReleaseStringUTFChars(passwordStr, password);
         env->DeleteGlobalRef(passwordStr);
+        passwordStr = nullptr;
     }
     if (operationalDatasetBytes != nullptr)
     {
         env->ReleaseByteArrayElements(operationalDatasetBytes, operationalDataset, 0);
         env->DeleteGlobalRef(operationalDatasetBytes);
+        operationalDatasetBytes = nullptr;
     }
 }
 
