@@ -26,13 +26,14 @@ public final class AndroidChipPlatform {
       ConfigurationManager cfg,
       ServiceResolver resolver,
       ChipMdnsCallback chipMdnsCallback,
+      ChipMdnsDiscoverCallback chipMdnsDiscoverCallback,
       DiagnosticDataProvider dataProvider) {
     // Order is important here: initChipStack() initializes the BLEManagerImpl, which depends on the
     // BLEManager being set.
     setBLEManager(ble);
     setKeyValueStoreManager(kvm);
     setConfigurationManager(cfg);
-    setServiceResolver(resolver, chipMdnsCallback);
+    setServiceResolver(resolver, chipMdnsCallback, chipMdnsDiscoverCallback);
     setDiagnosticDataProviderManager(dataProvider);
     initChipStack();
   }
@@ -81,14 +82,14 @@ public final class AndroidChipPlatform {
   private native void initChipStack();
 
   // for ServiceResolver
-  private void setServiceResolver(ServiceResolver resolver, ChipMdnsCallback chipMdnsCallback) {
+  private void setServiceResolver(ServiceResolver resolver, ChipMdnsCallback chipMdnsCallback, ChipMdnsDiscoverCallback chipMdnsDiscoverCallback) {
     if (resolver != null) {
-      nativeSetServiceResolver(resolver, chipMdnsCallback);
+      nativeSetServiceResolver(resolver, chipMdnsCallback, chipMdnsDiscoverCallback);
     }
   }
 
   private native void nativeSetServiceResolver(
-      ServiceResolver resolver, ChipMdnsCallback chipMdnsCallback);
+      ServiceResolver resolver, ChipMdnsCallback chipMdnsCallback, ChipMdnsDiscoverCallback chipMdnsDiscoverCallback);
 
   private native void setDiagnosticDataProviderManager(DiagnosticDataProvider dataProviderCallback);
 

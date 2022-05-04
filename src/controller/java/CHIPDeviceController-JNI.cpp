@@ -560,6 +560,27 @@ JNI_METHOD(jlong, getCompressedFabricId)(JNIEnv * env, jobject self, jlong handl
     return wrapper->Controller()->GetCompressedFabricId();
 }
 
+JNI_METHOD(void, discover)(JNIEnv * env, jobject self, jlong handle, jstring serviceType, jlong fabricId)
+{
+    chip::DeviceLayer::StackLock lock;
+    const char * serviceTypeString = NULL;
+
+    AndroidDeviceControllerWrapper * wrapper = AndroidDeviceControllerWrapper::FromJNIHandle(handle);
+
+    serviceTypeString = env->GetStringUTFChars(serviceType, 0);
+    env->ReleaseStringUTFChars(serviceType, serviceTypeString);
+
+    // TODO : work in progress ...
+    chip::Dnssd::DiscoveryFilter filter(chip::Dnssd::DiscoveryFilterType::kNone, (uint64_t) 0);
+
+    CHIP_ERROR err = wrapper->Controller()->DiscoverCommissionableNodes(filter);
+    if (err != CHIP_NO_ERROR)
+    {
+        ChipLogError(Controller, "Failed to discover %s", serviceTypeString);
+        JniReferences::GetInstance().ThrowError(env, sChipDeviceControllerExceptionCls, err);
+    }
+}
+
 JNI_METHOD(void, updateDevice)(JNIEnv * env, jobject self, jlong handle, jlong fabricId, jlong deviceId)
 {
     chip::DeviceLayer::StackLock lock;

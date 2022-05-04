@@ -27,6 +27,7 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AlertDialog
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
+import chip.devicecontroller.ChipDeviceController
 import com.google.chip.chiptool.util.FragmentUtil
 import kotlinx.android.synthetic.main.select_action_fragment.provisionThreadCredentialsBtn
 import kotlinx.android.synthetic.main.select_action_fragment.provisionWiFiCredentialsBtn
@@ -34,6 +35,8 @@ import kotlinx.android.synthetic.main.select_action_fragment.view.*
 
 /** Fragment to select from various options to interact with a CHIP device. */
 class SelectActionFragment : Fragment() {
+  private val deviceController: ChipDeviceController
+    get() = ChipClient.getDeviceController(requireContext())
 
   override fun onCreateView(
       inflater: LayoutInflater,
@@ -41,6 +44,9 @@ class SelectActionFragment : Fragment() {
       savedInstanceState: Bundle?
   ): View {
     return inflater.inflate(R.layout.select_action_fragment, container, false).apply {
+      // FIXME : to remove / for tests only
+      discoverBtn.setOnClickListener { deviceController.discoverCommissionables() }
+
       scanQrBtn.setOnClickListener { getCallback()?.handleScanQrCodeClicked() }
       provisionWiFiCredentialsBtn.apply {
         isEnabled = hasLocationPermission()

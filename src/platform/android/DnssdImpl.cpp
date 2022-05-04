@@ -38,7 +38,9 @@ using namespace chip::Platform;
 
 namespace {
 jobject sResolverObject         = nullptr;
+jobject sMdnsDiscoverCallbackObject     = nullptr;
 jobject sMdnsCallbackObject     = nullptr;
+jmethodID sDiscoverMethod       = nullptr;
 jmethodID sResolveMethod        = nullptr;
 jmethodID sPublishMethod        = nullptr;
 jmethodID sRemoveServicesMethod = nullptr;
@@ -142,8 +144,32 @@ CHIP_ERROR ChipDnssdFinalizeServiceUpdate()
 CHIP_ERROR ChipDnssdBrowse(const char * type, DnssdServiceProtocol protocol, Inet::IPAddressType addressType,
                            Inet::InterfaceId interface, DnssdBrowseCallback callback, void * context)
 {
-    // TODO: Implement DNS-SD browse for Android
-    return CHIP_ERROR_NOT_IMPLEMENTED;
+    VerifyOrReturnError(callback != nullptr, CHIP_ERROR_INVALID_ARGUMENT);
+    VerifyOrReturnError(sResolverObject != nullptr && sDiscoverMethod != nullptr, CHIP_ERROR_INCORRECT_STATE);
+    VerifyOrReturnError(sMdnsDiscoverCallbackObject != nullptr, CHIP_ERROR_INCORRECT_STATE);
+
+    std::string serviceType(type);
+    serviceType += '.';
+    serviceType += (protocol == DnssdServiceProtocol::kDnssdProtocolUdp ? "_udp" : "_tcp");
+
+    JNIEnv * env = JniReferences::GetInstance().GetEnvForCurrentThread();
+    UtfString jniServiceType(env, serviceType.c_str());
+
+    {
+        DeviceLayer::StackUnlock unlock;
+        env->CallVoidMethod(sResolverObject, sDiscoverMethod, jniServiceType.jniValue(),
+                            reinterpret_cast<jlong>(callback), reinterpret_cast<jlong>(context), sMdnsDiscoverCallbackObject);
+    }
+
+    if (env->ExceptionCheck())
+    {
+        ChipLogError(Discovery, "Java exception in ChipDnssdBrowse");
+        env->ExceptionDescribe();
+        env->ExceptionClear();
+        return CHIP_JNI_ERROR_EXCEPTION_THROWN;
+    }
+
+    return CHIP_NO_ERROR;
 }
 
 CHIP_ERROR ChipDnssdResolve(DnssdService * service, Inet::InterfaceId interface, DnssdResolveCallback callback, void * context)
@@ -179,17 +205,26 @@ CHIP_ERROR ChipDnssdResolve(DnssdService * service, Inet::InterfaceId interface,
 
 // Implemention of Java-specific functions
 
-void InitializeWithObjects(jobject resolverObject, jobject mdnsCallbackObject)
+void InitializeWithObjects(jobject resolverObject, jobject mdnsCallbackObject, jobject mdnsDiscoverCallbackObject)
 {
     JNIEnv * env         = JniReferences::GetInstance().GetEnvForCurrentThread();
     sResolverObject      = env->NewGlobalRef(resolverObject);
+    sMdnsDiscoverCallbackObject  = env->NewGlobalRef(mdnsDiscoverCallbackObject);
     sMdnsCallbackObject  = env->NewGlobalRef(mdnsCallbackObject);
     jclass resolverClass = env->GetObjectClass(sResolverObject);
 
     VerifyOrReturn(resolverClass != nullptr, ChipLogError(Discovery, "Failed to get Resolver Java class"));
 
+    sDiscoverMethod =
+            env->GetMethodID(resolverClass, "discover", "(Ljava/lang/String;JJLchip/platform/ChipMdnsDiscoverCallback;)V");
+    if (sDiscoverMethod == nullptr)
+    {
+        ChipLogError(Discovery, "Failed to access Resolver 'discover' method");
+        env->ExceptionClear();
+    }
+
     sResolveMethod =
-        env->GetMethodID(resolverClass, "resolve", "(Ljava/lang/String;Ljava/lang/String;JJLchip/platform/ChipMdnsCallback;)V");
+            env->GetMethodID(resolverClass, "resolve", "(Ljava/lang/String;Ljava/lang/String;JJLchip/platform/ChipMdnsCallback;)V");
     if (sResolveMethod == nullptr)
     {
         ChipLogError(Discovery, "Failed to access Resolver 'resolve' method");
@@ -243,6 +278,58 @@ void HandleResolve(jstring instanceName, jstring serviceType, jstring address, j
     service.mPort = static_cast<uint16_t>(port);
 
     dispatch(CHIP_NO_ERROR, &service);
+}
+
+std::vector<DnssdService> mServices;
+
+void HandleBrowse(jint event, jstring instanceName, jstring serviceType, jstring address, jint port, jlong callbackHandle, jlong contextHandle)
+{
+    VerifyOrReturn(callbackHandle != 0, ChipLogError(Discovery, "HandleBrowse called with callback equal to nullptr"));
+
+    ChipLogProgress(Discovery, "HandleBrowse event : %d", event);
+
+    JNIEnv * env = JniReferences::GetInstance().GetEnvForCurrentThread();
+
+    const auto dispatch = [callbackHandle, contextHandle](CHIP_ERROR error, DnssdService * services = nullptr, int nbServices = 0) {
+        DeviceLayer::StackLock lock;
+        DnssdBrowseCallback callback = reinterpret_cast<DnssdBrowseCallback>(callbackHandle);
+        callback(reinterpret_cast<void *>(contextHandle), services, nbServices, error);
+    };
+
+    // FIXME : started light implementation similar to Linux platform : src/platform/Linux/DnssdImpl.cpp
+
+    switch (event) {
+        case 0 /* START */:
+            mServices.clear();
+            break;
+        case 1 /* ADD */: {
+            DnssdService service = {};
+
+            JniUtfString jniInstanceName(env, instanceName);
+            JniUtfString jniServiceType(env, serviceType);
+            JniUtfString jniAddress(env, address);
+//            Inet::IPAddress ipAddress;
+
+            VerifyOrReturn(strlen(jniInstanceName.c_str()) <= Operational::kInstanceNameMaxLength, dispatch(CHIP_ERROR_INVALID_ARGUMENT));
+            VerifyOrReturn(strlen(jniServiceType.c_str()) <= kDnssdTypeAndProtocolMaxSize, dispatch(CHIP_ERROR_INVALID_ARGUMENT));
+            VerifyOrReturn(CanCastTo<uint16_t>(port), dispatch(CHIP_ERROR_INVALID_ARGUMENT));
+//            VerifyOrReturn(Inet::IPAddress::FromString(jniAddress.c_str(), ipAddress), dispatch(CHIP_ERROR_INVALID_ARGUMENT));
+
+            Platform::CopyString(service.mName, jniInstanceName.c_str());
+            Platform::CopyString(service.mType, jniServiceType.c_str());
+//            service.mAddress.SetValue(ipAddress);
+//            service.mPort = static_cast<uint16_t>(port);
+
+            mServices.push_back(service);
+        }
+            break;
+        case 2 /* REMOVE */:
+            // TODO : remove device from mServices
+            break;
+        case 3 /* STOP */:
+            dispatch(CHIP_NO_ERROR, mServices.data(), mServices.size());
+            break;
+    }
 }
 
 } // namespace Dnssd

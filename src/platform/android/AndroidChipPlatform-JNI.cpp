@@ -45,6 +45,8 @@ using namespace chip;
 #define JNI_METHOD(RETURN, METHOD_NAME) extern "C" JNIEXPORT RETURN JNICALL Java_chip_platform_AndroidChipPlatform_##METHOD_NAME
 #define JNI_MDNSCALLBACK_METHOD(RETURN, METHOD_NAME)                                                                               \
     extern "C" JNIEXPORT RETURN JNICALL Java_chip_platform_ChipMdnsCallbackImpl_##METHOD_NAME
+#define JNI_MDNSDISCOVERCALLBACK_METHOD(RETURN, METHOD_NAME)                                                                               \
+    extern "C" JNIEXPORT RETURN JNICALL Java_chip_platform_ChipMdnsDiscoverCallbackImpl_##METHOD_NAME
 
 #if CHIP_DEVICE_CONFIG_ENABLE_CHIPOBLE
 static bool JavaBytesToUUID(JNIEnv * env, jbyteArray value, chip::Ble::ChipBleUUID & uuid);
@@ -228,10 +230,10 @@ JNI_METHOD(void, setDiagnosticDataProviderManager)(JNIEnv * env, jclass self, jo
 }
 
 // for ServiceResolver
-JNI_METHOD(void, nativeSetServiceResolver)(JNIEnv * env, jclass self, jobject resolver, jobject chipMdnsCallback)
+JNI_METHOD(void, nativeSetServiceResolver)(JNIEnv * env, jclass self, jobject resolver, jobject chipMdnsCallback, jobject chipMdnsDiscoverCallback)
 {
     chip::DeviceLayer::StackLock lock;
-    chip::Dnssd::InitializeWithObjects(resolver, chipMdnsCallback);
+    chip::Dnssd::InitializeWithObjects(resolver, chipMdnsCallback, chipMdnsDiscoverCallback);
 }
 
 JNI_MDNSCALLBACK_METHOD(void, handleServiceResolve)
@@ -240,6 +242,14 @@ JNI_MDNSCALLBACK_METHOD(void, handleServiceResolve)
 {
     using ::chip::Dnssd::HandleResolve;
     HandleResolve(instanceName, serviceType, address, port, callbackHandle, contextHandle);
+}
+
+JNI_MDNSDISCOVERCALLBACK_METHOD(void, handleServiceDiscover)
+(JNIEnv * env, jclass self, jint event, jstring instanceName, jstring serviceType, jstring address, jint port, jlong callbackHandle,
+ jlong contextHandle)
+{
+    using ::chip::Dnssd::HandleBrowse;
+    HandleBrowse(event, instanceName, serviceType, address, port, callbackHandle, contextHandle);
 }
 
 #if CHIP_DEVICE_CONFIG_ENABLE_CHIPOBLE

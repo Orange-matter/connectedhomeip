@@ -47,6 +47,14 @@ public class ChipDeviceController {
     completionListener = listener;
   }
 
+  public void discoverCommissionables() {
+    discover(deviceControllerPtr, "_matterc._udp", 0);
+  }
+
+  public void discoverCommissionees(long fabricId) {
+    discover(deviceControllerPtr, "_matter._tcp", fabricId);
+  }
+
   public void pairDevice(
       BluetoothGatt bleServer,
       int connId,
@@ -435,6 +443,8 @@ public class ChipDeviceController {
   private native long getCompressedFabricId(long deviceControllerPtr);
 
   private native void updateDevice(long deviceControllerPtr, long fabricId, long deviceId);
+
+  private native void discover(long deviceControllerPtr, String serviceType, long fabricId);
 
   private native boolean openPairingWindow(long deviceControllerPtr, long devicePtr, int duration);
 

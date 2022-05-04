@@ -19,6 +19,12 @@ package chip.platform;
 
 /** Interface for resolving network services. */
 public interface ServiceResolver {
+  void discover(
+          String serviceType,
+          long callbackHandle,
+          long contextHandle,
+          ChipMdnsDiscoverCallback chipMdnsCallback);
+
   /**
    * Resolve an address for the given instance name and service type. The implementation of this
    * function should call {@link ChipMdnsCallback#handleServiceResolve} on chipMdnsCallback, passing

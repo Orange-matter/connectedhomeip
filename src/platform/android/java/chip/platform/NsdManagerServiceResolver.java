@@ -30,6 +30,7 @@ import java.util.List;
 
 public class NsdManagerServiceResolver implements ServiceResolver {
   private static final String TAG = NsdManagerServiceResolver.class.getSimpleName();
+  private static final long DISCOVER_SERVICE_TIMEOUT = 5000;
   private static final long RESOLVE_SERVICE_TIMEOUT = 30000;
   private final NsdManager nsdManager;
   private MulticastLock multicastLock;
@@ -45,6 +46,104 @@ public class NsdManagerServiceResolver implements ServiceResolver {
             .createMulticastLock("chipMulticastLock");
     this.multicastLock.setReferenceCounted(true);
   }
+
+    @Override
+    public void discover(
+            final String serviceType,
+            final long callbackHandle,
+            final long contextHandle,
+            final ChipMdnsDiscoverCallback chipMdnsDiscoverCallback) {
+
+        Log.d(TAG, "Starting service discovery for '" + serviceType + "'");
+        multicastLock.acquire();
+
+        NsdManager.DiscoveryListener discoveryListener = new NsdManager.DiscoveryListener() {
+            @Override
+            public void onStartDiscoveryFailed(String serviceType, int errorCode) {
+                Log.d(TAG, "onStartDiscoveryFailed");
+            }
+
+            @Override
+            public void onStopDiscoveryFailed(String serviceType, int errorCode) {
+                Log.d(TAG, "onStopDiscoveryFailed");
+            }
+
+            @Override
+            public void onDiscoveryStarted(String serviceType) {
+                Log.d(TAG, "onDiscoveryStarted");
+
+                chipMdnsDiscoverCallback.handleServiceDiscover(
+                        ChipMdnsDiscoverCallback.START,
+                        null,
+                        null,
+                        null,
+                        0,
+                        callbackHandle,
+                        contextHandle);
+            }
+
+            @Override
+            public void onDiscoveryStopped(String serviceType) {
+                Log.d(TAG, "onDiscoveryStopped");
+
+                chipMdnsDiscoverCallback.handleServiceDiscover(
+                        ChipMdnsDiscoverCallback.STOP,
+                        null,
+                        null,
+                        null,
+                        0,
+                        callbackHandle,
+                        contextHandle);
+            }
+
+            @Override
+            public void onServiceFound(NsdServiceInfo serviceInfo) {
+                Log.d(TAG, "onServiceFound : " + serviceInfo.toString());
+
+                chipMdnsDiscoverCallback.handleServiceDiscover(
+                        ChipMdnsDiscoverCallback.ADD,
+                        serviceInfo.getServiceName(),
+                        serviceType,
+                        serviceInfo.getHost() != null ? serviceInfo.getHost().getHostAddress() : null,
+                        serviceInfo.getPort(),
+                        callbackHandle,
+                        contextHandle);
+            }
+
+            @Override
+            public void onServiceLost(NsdServiceInfo serviceInfo) {
+                Log.d(TAG, "onServiceLost");
+
+                chipMdnsDiscoverCallback.handleServiceDiscover(
+                        ChipMdnsDiscoverCallback.REMOVE,
+                        serviceInfo.getServiceName(),
+                        serviceType,
+                        serviceInfo.getHost() != null ? serviceInfo.getHost().getHostAddress() : null,
+                        serviceInfo.getPort(),
+                        callbackHandle,
+                        contextHandle);
+            }
+        };
+
+        Runnable timeoutRunnable =
+                new Runnable() {
+                    @Override
+                    public void run() {
+                        nsdManager.stopServiceDiscovery(discoveryListener);
+                        // Ensure we always release the multicast lock. It's possible that we release the
+                        // multicast lock here before ResolveListener returns, but since NsdManager has no API
+                        // to cancel service resolution, there's not much we can do here.
+                        if (multicastLock.isHeld()) {
+                            multicastLock.release();
+                        }
+                        mainThreadHandler.removeCallbacks(this);
+                    }
+                };
+
+        this.nsdManager.discoverServices(serviceType, NsdManager.PROTOCOL_DNS_SD, discoveryListener);
+
+        mainThreadHandler.postDelayed(timeoutRunnable, DISCOVER_SERVICE_TIMEOUT);
+    }
 
   @Override
   public void resolve(
