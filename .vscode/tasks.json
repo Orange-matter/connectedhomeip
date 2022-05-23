@@ -34,6 +34,18 @@
             }
         },
         {
+            "label": "Build Thermostat (Linux)",
+            "type": "shell",
+            "command": "scripts/run_in_build_env.sh",
+            "args": [
+                "./scripts/examples/gn_build_example.sh examples/thermostat/linux bin"
+            ],
+            "group": "build",
+            "problemMatcher": {
+                "base": "$gcc"
+            }
+        },
+        {
             "label": "Build Chip Tool",
             "type": "shell",
             "command": "scripts/run_in_build_env.sh",
