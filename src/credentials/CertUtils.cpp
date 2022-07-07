@@ -1,16 +1,13 @@
-#include <ostream>
-#include <sstream>
 #include "CertUtils.h"
 
 
 namespace chip {
 namespace Credentials {
 
-std::ostream &operator<<(std::ostream &os, const ChipDN &dn) {
+std::string ToString(const ChipDN &dn) {
     uint8_t rdnCount = dn.RDNCount();
     char valueStr[128];
-
-    os << "[[ ";
+    std::string output = "[[ ";
 
     for (uint8_t i = 0; i < rdnCount; i++) {
         if (IsChip64bitDNAttr(dn.rdn[i].mAttrOID)) {
@@ -26,21 +23,18 @@ std::ostream &operator<<(std::ostream &os, const ChipDN &dn) {
             valueStr[len] = 0;
         }
 
-        os << chip::ASN1::GetOIDName(dn.rdn[i].mAttrOID) << " = " << valueStr;
+        output += chip::ASN1::GetOIDName(dn.rdn[i].mAttrOID);
+        output += " = ";
+        output += valueStr;
+
         if (i < rdnCount - 1) {
-            os << ", ";
+            output += ", ";
         }
     }
 
-    os << " ]]";
+    output += " ]]";
 
-    return os;
-}
-
-std::string ToString(const ChipDN &dn) {
-    std::stringstream ss;
-    ss << dn;
-    return ss.str();
+    return output;
 }
 
 }
