@@ -28,6 +28,7 @@ class DeviceInstanceInfoProviderImpl : public Internal::GenericDeviceInstanceInf
 public:
     CHIP_ERROR GetProductName(char * buf, size_t bufSize) override;
     CHIP_ERROR GetProductId(uint16_t & productId) override;
+    CHIP_ERROR GetVendorId(uint16_t & vendorId) override;
     CHIP_ERROR GetHardwareVersionString(char * buf, size_t bufSize) override;
 
 private:
