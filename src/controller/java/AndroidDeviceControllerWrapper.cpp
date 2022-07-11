@@ -242,6 +242,8 @@ AndroidDeviceControllerWrapper * AndroidDeviceControllerWrapper::AllocateNew(
         setupParams.controllerNOC  = nocSpan;
     }
 
+    setupParams.controllerVendorId  = chip::VendorId::TestVendor1;
+
     *errInfoOnFailure = DeviceControllerFactory::GetInstance().Init(initParams);
     if (*errInfoOnFailure != CHIP_NO_ERROR)
     {
