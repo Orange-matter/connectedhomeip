@@ -108,12 +108,21 @@
             "type": "cppdbg",
             "request": "launch",
             "program": "${workspaceFolder}/bin/chip-lighting-app",
-            "args": [],
+            "args": [
+                "--discriminator", "128",
+                "--vendor-id", "1000",
+                "--product-id", "32780",
+            ],
             "stopAtEntry": false,
             "cwd": "${workspaceFolder}",
             "environment": [],
             "externalConsole": false,
-            "MIMode": "gdb",
+            "linux": {
+                "MIMode": "gdb"
+            },
+            "osx": {
+                "MIMode": "lldb"
+            },
             "preLaunchTask": "Build Lighting App (Linux)",
             "setupCommands": [
                 {
