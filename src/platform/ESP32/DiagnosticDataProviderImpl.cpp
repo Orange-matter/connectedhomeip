@@ -47,6 +47,10 @@ using namespace ::chip::DeviceLayer;
 using namespace ::chip::DeviceLayer::Internal;
 using namespace ::chip::app::Clusters::GeneralDiagnostics;
 
+
+int8_t rssiFake = 0;
+bool isRssiFakeMode = false;
+
 namespace {
 
 InterfaceType GetInterfaceType(const char * if_desc)
@@ -328,7 +332,13 @@ CHIP_ERROR DiagnosticDataProviderImpl::GetWiFiRssi(int8_t & rssi)
 
     if (err == ESP_OK)
     {
-        rssi = ap_info.rssi;
+        if(isRssiFakeMode) rssi = rssiFake;
+        else
+        {
+            rssi = ap_info.rssi;
+            rssiFake = rssi;
+        }
+
     }
     return CHIP_NO_ERROR;
 }
