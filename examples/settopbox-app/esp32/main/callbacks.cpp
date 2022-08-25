@@ -1,0 +1,19 @@
+#include <app/CommandHandler.h>
+#include <app-common/zap-generated/cluster-objects.h>
+#include <app/util/af.h>
+
+using namespace chip;
+using namespace chip::app;
+using namespace chip::app::Clusters;
+
+
+bool emberAfInformationClusterMfgSpecificPingCallback(
+    chip::app::CommandHandler * commandObj, 
+    const chip::app::ConcreteCommandPath & commandPath,
+    const chip::app::Clusters::BasicInformation::Commands::MfgSpecificPing::DecodableType & commandData)
+{
+    ChipLogDetail(Test, "Settopbox-App: Responding to command");
+    emberAfSendDefaultResponse(emberAfCurrentCommand(), EMBER_ZCL_STATUS_SUCCESS);
+    ChipLogDetail(Test, "Settopbox-App: Response sent");
+    return true;
+}
