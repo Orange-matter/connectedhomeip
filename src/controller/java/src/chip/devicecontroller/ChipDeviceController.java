@@ -52,8 +52,10 @@ public class ChipDeviceController {
   }
 
   // TODO : Orange adaptation => migrate to new constructor above
+  // Warning: set udp listen to 0 to pick any available port, required with multiple stacks / apps instances
+  //     Note: could preferably be done in caller (app ChipClient) using new constructor with ControllerParams
   public ChipDeviceController(long nodeId, long fabricId) {
-    deviceControllerPtr = newDeviceController(ControllerParams.newBuilder().build(), nodeId, fabricId);
+    deviceControllerPtr = newDeviceController(ControllerParams.newBuilder().setUdpListenPort(0).build(), nodeId, fabricId);
   }
 
   public void setCompletionListener(CompletionListener listener) {
