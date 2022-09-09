@@ -392,16 +392,19 @@ void AndroidDeviceControllerWrapper::OnCommissioningComplete(NodeId deviceId, CH
     {
         env->ReleaseStringUTFChars(ssidStr, ssid);
         env->DeleteGlobalRef(ssidStr);
+        ssidStr = nullptr;
     }
     if (passwordStr != nullptr)
     {
         env->ReleaseStringUTFChars(passwordStr, password);
         env->DeleteGlobalRef(passwordStr);
+        passwordStr = nullptr;
     }
     if (operationalDatasetBytes != nullptr)
     {
         env->ReleaseByteArrayElements(operationalDatasetBytes, operationalDataset, 0);
         env->DeleteGlobalRef(operationalDatasetBytes);
+        operationalDatasetBytes = nullptr;
     }
 }
 
