@@ -251,6 +251,8 @@ AndroidDeviceControllerWrapper * AndroidDeviceControllerWrapper::AllocateNew(
         setupParams.controllerNOC  = nocSpan;
     }
 
+    setupParams.controllerVendorId  = chip::VendorId::TestVendor1;
+
     *errInfoOnFailure = DeviceControllerFactory::GetInstance().Init(initParams);
     if (*errInfoOnFailure != CHIP_NO_ERROR)
     {
@@ -405,16 +407,19 @@ void AndroidDeviceControllerWrapper::OnCommissioningComplete(NodeId deviceId, CH
     {
         env->ReleaseStringUTFChars(ssidStr, ssid);
         env->DeleteGlobalRef(ssidStr);
+        ssidStr = nullptr;
     }
     if (passwordStr != nullptr)
     {
         env->ReleaseStringUTFChars(passwordStr, password);
         env->DeleteGlobalRef(passwordStr);
+        passwordStr = nullptr;
     }
     if (operationalDatasetBytes != nullptr)
     {
         env->ReleaseByteArrayElements(operationalDatasetBytes, operationalDataset, 0);
         env->DeleteGlobalRef(operationalDatasetBytes);
+        operationalDatasetBytes = nullptr;
     }
 }
 
@@ -425,7 +430,7 @@ void AndroidDeviceControllerWrapper::OnCommissioningStatusUpdate(PeerId peerId, 
     JNIEnv * env = JniReferences::GetInstance().GetEnvForCurrentThread();
     jmethodID onCommissioningStatusUpdateMethod;
     CHIP_ERROR err = JniReferences::GetInstance().FindMethod(env, mJavaObjectRef, "onCommissioningStatusUpdate",
-                                                             "(JLjava/lang/string;I)V", &onCommissioningStatusUpdateMethod);
+                                                             "(JLjava/lang/String;I)V", &onCommissioningStatusUpdateMethod);
     VerifyOrReturn(err == CHIP_NO_ERROR, ChipLogError(Controller, "Error finding Java method: %" CHIP_ERROR_FORMAT, err.Format()));
 
     UtfString jStageCompleted(env, StageToString(stageCompleted));
