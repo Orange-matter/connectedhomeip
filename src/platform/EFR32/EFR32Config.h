@@ -103,6 +103,9 @@ public:
     static constexpr Key kConfigKey_Spake2pIterationCount = EFR32ConfigKey(kMatterFactory_KeyBase, 0x08);
     static constexpr Key kConfigKey_Spake2pSalt           = EFR32ConfigKey(kMatterFactory_KeyBase, 0x09);
     static constexpr Key kConfigKey_Spake2pVerifier       = EFR32ConfigKey(kMatterFactory_KeyBase, 0x0A);
+    // Orange custo to set vendorId and productId
+    static constexpr Key kConfigKey_VendorId              = EFR32ConfigKey(kMatterFactory_KeyBase, 0x70);
+    static constexpr Key kConfigKey_ProductId             = EFR32ConfigKey(kMatterFactory_KeyBase, 0x71);
     // Matter Config Keys
     static constexpr Key kConfigKey_ServiceConfig      = EFR32ConfigKey(kMatterConfig_KeyBase, 0x01);
     static constexpr Key kConfigKey_PairedAccountId    = EFR32ConfigKey(kMatterConfig_KeyBase, 0x02);

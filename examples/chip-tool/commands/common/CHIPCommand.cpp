@@ -77,6 +77,8 @@ CHIP_ERROR CHIPCommand::MaybeSetUpStack()
     ReturnLogErrorOnFailure(mDefaultStorage.Init());
     ReturnLogErrorOnFailure(mOperationalKeystore.Init(&mDefaultStorage));
     ReturnLogErrorOnFailure(mOpCertStore.Init(&mDefaultStorage));
+    // Orange adaptation
+    ReturnLogErrorOnFailure(mCommissionerStorage.Init()); 
 
     chip::Controller::FactoryInitParams factoryInitParams;
 
@@ -357,7 +359,7 @@ CHIP_ERROR CHIPCommand::InitializeCommissioner(std::string key, chip::FabricId f
         // TODO - OpCreds should only be generated for pairing command
         //        store the credentials in persistent storage, and
         //        generate when not available in the storage.
-        ReturnLogErrorOnFailure(mCommissionerStorage.Init(key.c_str()));
+        //ReturnLogErrorOnFailure(mCommissionerStorage.Init(key.c_str()));
         ReturnLogErrorOnFailure(mCredIssuerCmds->InitializeCredentialsIssuer(mCommissionerStorage));
 
         chip::MutableByteSpan nocSpan(noc.Get(), chip::Controller::kMaxCHIPDERCertLength);

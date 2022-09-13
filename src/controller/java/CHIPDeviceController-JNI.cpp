@@ -334,6 +334,7 @@ JNI_METHOD(jlong, newDeviceController)(JNIEnv * env, jobject self, jobject contr
 
         std::unique_ptr<chip::Controller::AndroidOperationalCredentialsIssuer> opCredsIssuer(
             new chip::Controller::AndroidOperationalCredentialsIssuer());
+        // TODO Orange :  acquire nodeId from controllerParams and replace kLocalDeviceId
         wrapper = AndroidDeviceControllerWrapper::AllocateNew(
             sJVM, self, kLocalDeviceId, fabricId, chip::kUndefinedCATs, &DeviceLayer::SystemLayer(),
             DeviceLayer::TCPEndPointManager(), DeviceLayer::UDPEndPointManager(), std::move(opCredsIssuer), keypairDelegate,
