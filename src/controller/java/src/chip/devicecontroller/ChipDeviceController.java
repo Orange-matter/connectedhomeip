@@ -51,15 +51,7 @@ public class ChipDeviceController {
 
   /** Returns a new {@link ChipDeviceController} with the specified parameters. */
   public ChipDeviceController(ControllerParams params) {
-    // TODO : Orange adaptation => migrate to ControllerParams and remove node id + fabric id
-    deviceControllerPtr = newDeviceController(params, 0, 0);
-  }
-
-  // TODO : Orange adaptation => migrate to new constructor above
-  // Warning: set udp listen to 0 to pick any available port, required with multiple stacks / apps instances
-  //     Note: could preferably be done in caller (app ChipClient) using new constructor with ControllerParams
-  public ChipDeviceController(long nodeId, long fabricId) {
-    deviceControllerPtr = newDeviceController(ControllerParams.newBuilder().setUdpListenPort(0).build(), nodeId, fabricId);
+    deviceControllerPtr = newDeviceController(params);
   }
 
   public void setCompletionListener(CompletionListener listener) {
@@ -600,8 +592,7 @@ public class ChipDeviceController {
       long devicePtr,
       List<ChipEventPath> eventPaths);
 
-  // TODO: Orange initial change with nodeId + fabricID=> migrate to use ControllerParams
-  private native long newDeviceController(ControllerParams params, long nodeId, long fabricId);
+  private native long newDeviceController(ControllerParams params);
 
   private native void pairDevice(
       long deviceControllerPtr,

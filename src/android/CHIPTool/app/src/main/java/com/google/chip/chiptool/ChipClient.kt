@@ -20,6 +20,7 @@ package com.google.chip.chiptool
 import android.content.Context
 import android.util.Log
 import chip.devicecontroller.ChipDeviceController
+import chip.devicecontroller.ControllerParams
 import chip.devicecontroller.GetConnectedDeviceCallbackJni.GetConnectedDeviceCallback
 import chip.platform.AndroidBleManager
 import chip.platform.AndroidChipPlatform
@@ -45,7 +46,13 @@ object ChipClient {
     getAndroidChipPlatform(context)
 
     if (!this::chipDeviceController.isInitialized) {
-      chipDeviceController = ChipDeviceController(nodeId, fabricId)
+      chipDeviceController = ChipDeviceController(
+        ControllerParams.newBuilder()
+        .setUdpListenPort(0)
+        .setFabricId(fabricId)
+        .setNodeId(nodeId)
+        .build()
+      )
     }
     return chipDeviceController
   }
