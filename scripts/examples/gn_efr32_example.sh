@@ -82,6 +82,10 @@ if [ "$#" == "0" ]; then
             Discriminatoor value used for BLE connexion. (Default 3840)
         setupPinCode
             PIN code for PASE session establishment. (Default 20202021)
+        setupVendorId
+            Vendor Id (Default 0xFFF1 / 65521)
+        setupProductId
+            Product Id (Default 0x8005 / 32773)
         enable_sleepy_device
             Enable Sleepy end device. (Default false)
             Must also set chip_openthread_ftd=false
