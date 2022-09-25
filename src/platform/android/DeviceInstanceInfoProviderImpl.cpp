@@ -55,6 +55,22 @@ CHIP_ERROR DeviceInstanceInfoProviderImpl::GetProductId(uint16_t & productId)
     return CHIP_NO_ERROR;
 }
 
+CHIP_ERROR DeviceInstanceInfoProviderImpl::GetVendorId(uint16_t &vendorId)
+{
+    CHIP_ERROR err;
+    uint32_t u32VendorId = 0;
+    err                   = Internal::AndroidConfig::ReadConfigValue(Internal::AndroidConfig::kConfigKey_VendorId, u32VendorId);
+    if (err == CHIP_DEVICE_ERROR_CONFIG_NOT_FOUND)
+    {
+        vendorId = static_cast<uint16_t>(CHIP_DEVICE_CONFIG_DEVICE_VENDOR_ID);
+    }
+    else
+    {
+        vendorId = static_cast<uint16_t>(u32VendorId);
+    }
+    return CHIP_NO_ERROR;
+}
+
 CHIP_ERROR DeviceInstanceInfoProviderImpl::GetProductName(char * buf, size_t bufSize)
 {
     CHIP_ERROR err;

@@ -97,6 +97,8 @@ CHIP_ERROR CHIPCommand::MaybeSetUpStack()
     ReturnLogErrorOnFailure(mDefaultStorage.Init());
     ReturnLogErrorOnFailure(mOperationalKeystore.Init(&mDefaultStorage));
     ReturnLogErrorOnFailure(mOpCertStore.Init(&mDefaultStorage));
+    // Orange adaptation
+    //ReturnLogErrorOnFailure(mCommissionerStorage.Init()); 
 
     chip::Controller::FactoryInitParams factoryInitParams;
 
@@ -324,7 +326,9 @@ CHIP_ERROR CHIPCommand::GetCommissionerNodeId(std::string identity, chip::NodeId
         return CHIP_NO_ERROR;
     }
 
-    ReturnLogErrorOnFailure(mCommissionerStorage.Init(identity.c_str()));
+    // Orange adpadation
+    //ReturnLogErrorOnFailure(mCommissionerStorage.Init(identity.c_str()));
+    ReturnLogErrorOnFailure(mCommissionerStorage.Init());
 
     *nodeId = mCommissionerStorage.GetLocalNodeId();
 
@@ -409,7 +413,7 @@ CHIP_ERROR CHIPCommand::InitializeCommissioner(const CommissionerIdentity & iden
         // TODO - OpCreds should only be generated for pairing command
         //        store the credentials in persistent storage, and
         //        generate when not available in the storage.
-        ReturnLogErrorOnFailure(mCommissionerStorage.Init(identity.mName.c_str()));
+        //ReturnLogErrorOnFailure(mCommissionerStorage.Init(identity.mName.c_str()));
         if (mUseMaxSizedCerts.HasValue())
         {
             auto option = CredentialIssuerCommands::CredentialIssuerOptions::kMaximizeCertificateSizes;
