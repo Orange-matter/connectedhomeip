@@ -38,6 +38,9 @@ declare_args() {
   # Dump memory usage at link time.
   chip_print_memory_usage = false
 
+  setupVendorId = 65521
+  setupProductId = 32773
+
   # PIN code for PASE session establishment.
   setupPinCode = 20202021
   setupDiscriminator = 3840
@@ -136,6 +139,8 @@ efr32_sdk("sdk") {
     "BOARD_ID=${efr32_board}",
     "CHIP_DEVICE_CONFIG_USE_TEST_SETUP_PIN_CODE=${setupPinCode}",
     "CHIP_DEVICE_CONFIG_USE_TEST_SETUP_DISCRIMINATOR=${setupDiscriminator}",
+    "CHIP_DEVICE_CONFIG_DEVICE_VENDOR_ID=${setupVendorId}",
+    "CHIP_DEVICE_CONFIG_DEVICE_PRODUCT_ID=${setupProductId}",
     "OTA_PERIODIC_TIMEOUT=${OTA_periodic_query_timeout}",
   ]
 
