@@ -25,18 +25,7 @@ void LEDWidget::Init(void)
     mState      = false;
     mBrightness = UINT8_MAX;
 
-#if CONFIG_LED_TYPE_RMT
-    rmt_config_t config             = RMT_DEFAULT_CONFIG_TX((gpio_num_t) CONFIG_LED_GPIO, (rmt_channel_t) CONFIG_LED_RMT_CHANNEL);
-    led_strip_config_t strip_config = LED_STRIP_DEFAULT_CONFIG(1, (led_strip_dev_t) config.channel);
 
-    config.clk_div = 2;
-    rmt_config(&config);
-    rmt_driver_install(config.channel, 0, 0);
-
-    mStrip      = led_strip_new_rmt_ws2812(&strip_config);
-    mHue        = 0;
-    mSaturation = 0;
-#else
     mGPIONum                       = (gpio_num_t) CONFIG_LED_GPIO;
     ledc_timer_config_t ledc_timer = {
         .speed_mode      = LEDC_LOW_SPEED_MODE, // timer mode
@@ -56,7 +45,6 @@ void LEDWidget::Init(void)
         .hpoint     = 0,
     };
     ledc_channel_config(&ledc_channel);
-#endif // CONFIG_LED_TYPE_RMT
 }
 
 void LEDWidget::Set(bool state)
@@ -99,47 +87,15 @@ bool LEDWidget::IsTurnedOn()
     return this->mState;
 }
 
-#if CONFIG_LED_TYPE_RMT
-void LEDWidget::SetColor(uint8_t Hue, uint8_t Saturation)
-{
-    if (Hue == mHue && Saturation == mSaturation)
-        return;
-
-    mHue        = Hue;
-    mSaturation = Saturation;
-
-    DoSet();
-}
-#endif // CONFIG_LED_TYPE_RMT
 
 void LEDWidget::DoSet(void)
 {
     uint8_t brightness = mState ? mBrightness : 0;
 
-#if CONFIG_LED_TYPE_RMT
-    if (mStrip)
-    {
-        HsvColor_t hsv = { mHue, mSaturation, brightness };
-        RgbColor_t rgb = HsvToRgb(hsv);
-
-        mStrip->set_pixel(mStrip, 0, rgb.r, rgb.g, rgb.b);
-        mStrip->refresh(mStrip, 100);
-    }
-#else
     ESP_LOGE(TAG, "DoSet to GPIO number %d", mGPIONum);
     if (mGPIONum < GPIO_NUM_MAX)
     {
         ledc_set_duty(LEDC_LOW_SPEED_MODE, LEDC_CHANNEL_0, brightness);
         ledc_update_duty(LEDC_LOW_SPEED_MODE, LEDC_CHANNEL_0);
-    }
-#endif // CONFIG_LED_TYPE_RMT
-}
-
-void LEDWidget::Set(bool red, bool green, bool blue, bool blinkingMode, bool oneShoot)
-{
-    if (mStrip)
-    {
-        mStrip->set_pixel(mStrip, 0, 32, 0, 0);
-        mStrip->refresh(mStrip, 100);
     }
 }

@@ -34,7 +34,7 @@ led_strip_t* mStrip = nullptr;
 
 void LedRGB::Init(void)
 {
-    #if defined(ESP32_BOARD_ONLY)
+    #if defined(CONFIG_ESP32_BOARD_ONLY)
         InitLedWidget();
     #else
         InitLed();
@@ -107,7 +107,7 @@ void LedRGB::Set(bool red, bool green, bool blue, bool blinkingMode, bool oneSho
     mGreenState = green;
     mBlueState = blue;
 
-    #if defined(ESP32_BOARD_ONLY)
+    #if defined(CONFIG_ESP32_BOARD_ONLY)
         if (mStrip)
         {
             mStrip->set_pixel(mStrip, 0, mRedState ? 32 : 0, mGreenState ? 32 : 0, mBlueState ? 32: 0);
@@ -148,7 +148,7 @@ void LedRGB::LedRGBTimerCallback(TimerHandle_t xTimer)
 {
     if(isBlinkingMode)
     {
-        #if defined(ESP32_BOARD_ONLY)
+        #if defined(CONFIG_ESP32_BOARD_ONLY)
 
             if (mStrip)
             {

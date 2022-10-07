@@ -28,9 +28,6 @@
 #include <app-common/zap-generated/cluster-id.h>
 #include <platform/ESP32/DiagnosticDataProviderImpl.h>
 
-#define CHIP_DEVICE_CONFIG_DEVICE_PRODUCT_ID 0x8050
-#define CHIP_DEVICE_VENDOR_ID  0xFFF1
-
 #define APP_TASK_NAME "APP"
 #define APP_EVENT_QUEUE_SIZE 10
 #define APP_TASK_STACK_SIZE (3072)

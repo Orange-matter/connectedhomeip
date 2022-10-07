@@ -107,3 +107,13 @@ menu "Demo"
        default 8 if RENDEZVOUS_MODE_ETHERNET
 
 endmenu
+
+menu "Custom options"
+
+    config ESP32_BOARD_ONLY
+        bool "Board only"
+        default "n"
+        help
+            Simulate Matter device with board standalone
+
+endmenu

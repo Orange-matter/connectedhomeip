@@ -1,7 +1,7 @@
 #include "Button.h"
 #include "AppTask.h"
 
-#if defined(ESP32_BOARD_ONLY)
+#if defined(CONFIG_ESP32_BOARD_ONLY)
     #define GPIO_BUTTON GPIO_NUM_0
 #else 
     #define GPIO_BUTTON GPIO_NUM_10
