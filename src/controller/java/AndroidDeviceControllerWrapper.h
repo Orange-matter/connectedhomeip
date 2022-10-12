@@ -150,7 +150,7 @@ public:
                 AndroidOperationalCredentialsIssuerPtr opCredsIssuer, jobject keypairDelegate, jbyteArray rootCertificate,
                 jbyteArray intermediateCertificate, jbyteArray nodeOperationalCertificate, jbyteArray ipkEpochKey,
                 uint16_t listenPort, uint16_t controllerVendorId, uint16_t failsafeTimerSeconds, bool attemptNetworkScanWiFi,
-                bool attemptNetworkScanThread, bool skipCommissioningComplete, CHIP_ERROR * errInfoOnFailure);
+                bool attemptNetworkScanThread, bool skipCommissioningComplete, jstring paa_trust_store_path, CHIP_ERROR * errInfoOnFailure);
 
     chip::Controller::AndroidOperationalCredentialsIssuer * GetAndroidOperationalCredentialsIssuer()
     {
@@ -190,6 +190,8 @@ private:
     AndroidDeviceControllerWrapper(ChipDeviceControllerPtr controller, AndroidOperationalCredentialsIssuerPtr opCredsIssuer) :
         mController(std::move(controller)), mOpCredsIssuer(std::move(opCredsIssuer))
     {}
+    
+    static const chip::Credentials::AttestationTrustStore* GetAttestationTrustStore(jstring paaTrustStorePath);
 };
 
 inline jlong AndroidDeviceControllerWrapper::ToJNIHandle()
