@@ -321,6 +321,10 @@ JNI_METHOD(jlong, newDeviceController)(JNIEnv * env, jobject self, jobject contr
     err = chip::JniReferences::GetInstance().FindMethod(env, controllerParams, "getAdminSubject", "()J", &getAdminSubject);
     SuccessOrExit(err);
 
+    jmethodID getPaaTrustStorePath;
+    err = chip::JniReferences::GetInstance().FindMethod(env, controllerParams, "getPaaTrustStorePath", "()Ljava/lang/String;", &getPaaTrustStorePath);
+    SuccessOrExit(err);
+
     {
         uint64_t fabricId                  = env->CallLongMethod(controllerParams, getFabricId);
         uint64_t nodeId                    = env->CallLongMethod(controllerParams, getNodeId);
@@ -336,6 +340,7 @@ JNI_METHOD(jlong, newDeviceController)(JNIEnv * env, jobject self, jobject contr
         bool attemptNetworkScanThread      = env->CallBooleanMethod(controllerParams, getAttemptNetworkScanThread);
         bool skipCommissioningComplete     = env->CallBooleanMethod(controllerParams, getSkipCommissioningComplete);
         uint64_t adminSubject              = env->CallLongMethod(controllerParams, getAdminSubject);
+        jstring paaTrustStorePath          = (jstring) env->CallObjectMethod(controllerParams, getPaaTrustStorePath);
 
         std::unique_ptr<chip::Controller::AndroidOperationalCredentialsIssuer> opCredsIssuer(
             new chip::Controller::AndroidOperationalCredentialsIssuer());
@@ -344,7 +349,7 @@ JNI_METHOD(jlong, newDeviceController)(JNIEnv * env, jobject self, jobject contr
             sJVM, self, nodeId, fabricId, chip::kUndefinedCATs, &DeviceLayer::SystemLayer(),
             DeviceLayer::TCPEndPointManager(), DeviceLayer::UDPEndPointManager(), std::move(opCredsIssuer), keypairDelegate,
             rootCertificate, intermediateCertificate, operationalCertificate, ipk, listenPort, controllerVendorId,
-            failsafeTimerSeconds, attemptNetworkScanWiFi, attemptNetworkScanThread, skipCommissioningComplete, &err);
+            failsafeTimerSeconds, attemptNetworkScanWiFi, attemptNetworkScanThread, skipCommissioningComplete, paaTrustStorePath, &err);
         SuccessOrExit(err);
 
         if (adminSubject != kUndefinedNodeId)

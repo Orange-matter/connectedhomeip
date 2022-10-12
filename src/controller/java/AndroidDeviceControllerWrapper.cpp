@@ -31,6 +31,7 @@
 #include <controller/CHIPDeviceControllerFactory.h>
 #include <credentials/attestation_verifier/DefaultDeviceAttestationVerifier.h>
 #include <credentials/attestation_verifier/DeviceAttestationVerifier.h>
+#include <credentials/attestation_verifier/FileAttestationTrustStore.h>
 #include <lib/core/CHIPTLV.h>
 #include <lib/support/PersistentStorageMacros.h>
 #include <lib/support/SafeInt.h>
@@ -78,7 +79,7 @@ AndroidDeviceControllerWrapper * AndroidDeviceControllerWrapper::AllocateNew(
     chip::Inet::EndPointManager<Inet::UDPEndPoint> * udpEndPointManager, AndroidOperationalCredentialsIssuerPtr opCredsIssuerPtr,
     jobject keypairDelegate, jbyteArray rootCertificate, jbyteArray intermediateCertificate, jbyteArray nodeOperationalCertificate,
     jbyteArray ipkEpochKey, uint16_t listenPort, uint16_t controllerVendorId, uint16_t failsafeTimerSeconds,
-    bool attemptNetworkScanWiFi, bool attemptNetworkScanThread, bool skipCommissioningComplete, CHIP_ERROR * errInfoOnFailure)
+    bool attemptNetworkScanWiFi, bool attemptNetworkScanThread, bool skipCommissioningComplete, jstring paaTrustStorePath, CHIP_ERROR * errInfoOnFailure)
 {
     if (errInfoOnFailure == nullptr)
     {
@@ -132,8 +133,9 @@ AndroidDeviceControllerWrapper * AndroidDeviceControllerWrapper::AllocateNew(
 
     // Initialize device attestation verifier
     // TODO: Replace testingRootStore with a AttestationTrustStore that has the necessary official PAA roots available
-    const chip::Credentials::AttestationTrustStore * testingRootStore = chip::Credentials::GetTestAttestationTrustStore();
-    SetDeviceAttestationVerifier(GetDefaultDACVerifier(testingRootStore));
+    // Orange: add paa_trust_store_path to store PPA certificates
+    const chip::Credentials::AttestationTrustStore* attestationTrustStore = GetAttestationTrustStore(paaTrustStorePath);
+    SetDeviceAttestationVerifier(chip::Credentials::GetDefaultDACVerifier(attestationTrustStore));
 
     chip::Controller::FactoryInitParams initParams;
     chip::Controller::SetupParams setupParams;
@@ -318,6 +320,29 @@ AndroidDeviceControllerWrapper * AndroidDeviceControllerWrapper::AllocateNew(
     }
 
     return wrapper.release();
+}
+
+const chip::Credentials::AttestationTrustStore* AndroidDeviceControllerWrapper::GetAttestationTrustStore(jstring paaTrustStorePath)
+{
+    const chip::Credentials::AttestationTrustStore* defaultTrustStore = chip::Credentials::GetTestAttestationTrustStore();
+    
+    if (paaTrustStorePath == nullptr)
+    {
+        ChipLogDetail(Controller, "No PAA store path provided, using default test trust store");
+        return defaultTrustStore;
+    }
+
+    JNIEnv * env = JniReferences::GetInstance().GetEnvForCurrentThread();
+    const char *path = env->GetStringUTFChars(paaTrustStorePath, 0);
+    chip::Credentials::FileAttestationTrustStore* attestationTrustStore = new chip::Credentials::FileAttestationTrustStore{ path };
+
+    if (attestationTrustStore->paaCount() == 0)
+    {
+        ChipLogError(Controller, "No PAAs found in path: %s, using default test trust store", path);
+        return defaultTrustStore;
+    }
+
+    return attestationTrustStore;
 }
 
 CHIP_ERROR AndroidDeviceControllerWrapper::ApplyNetworkCredentials(chip::Controller::CommissioningParameters & params,
