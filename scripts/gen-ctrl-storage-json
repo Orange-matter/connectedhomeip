@@ -1,0 +1,61 @@
+#!/bin/bash
+
+usage() { 
+    echo "Usage: $(basename $0) -r <root certificate> -i <intermediate certificate> -k <root key> -l <intermediate key> -f <fabric id>"
+    echo ""
+    echo "    Notes :"
+    echo "    1. certificates and private key expected in PEM format"
+    echo "    2. chip-cert tool shall be in the PATH"
+    echo ""
+    exit 1; 
+}
+
+while getopts ":r:i:k:l:n:f:" option; do
+    case "${option}" in
+        r)
+            root=${OPTARG}
+            ;;
+        i)
+            intermediate=${OPTARG}
+            ;;
+        k)
+            rkey=${OPTARG}
+            ;;
+        l)
+            ikey=${OPTARG}
+            ;;
+        f)
+            fabric=${OPTARG}
+            ;;
+        *)
+            usage
+            ;;
+    esac
+done
+
+# Check arguments
+[ -v root ] && [ -v intermediate ] && [ -v rkey ] && [ -v ikey ] && [ -v fabric ] || usage
+command -v chip-cert || usage
+
+# Generate chip-device-ctrl-storage.json
+
+rootCert=$(sed -e '/^-/d' ${root} | paste -sd '')
+rootKey=$(chip-cert convert-key ${rkey}  -b -)
+icaCert=$(sed -e '/^-/d' ${intermediate} | paste -sd '')
+icaKey=$(chip-cert convert-key ${ikey}  -b -)
+ 
+echo "{"
+echo "    \"repl-config\": {"
+echo "        \"fabricAdmins\": {"
+echo "            \"1\": {"
+echo "                \"fabricId\": ${fabric}"
+echo "            }"
+echo "        }"
+echo "    },"
+echo "    \"sdk-config\": {"
+echo "         \"ExampleCARootCert\": \"${rootCert}\","
+echo "         \"ExampleOpCredsCAKey\": \"${rootKey}\","
+echo "         \"ExampleCAIntermediateCert\": \"${icaCert}\","
+echo "         \"ExampleOpCredsICAKey\": \"${icaKey}\""
+echo "   }"
+echo "}"

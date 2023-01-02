@@ -6,6 +6,7 @@ import javax.annotation.Nullable;
 public final class ControllerParams {
 
   private final long fabricId;
+  private final long nodeId;
   private final int udpListenPort;
   private final int controllerVendorId;
   private final int failsafeTimerSeconds;
@@ -19,12 +20,14 @@ public final class ControllerParams {
   @Nullable private final byte[] operationalCertificate;
   @Nullable private final byte[] ipk;
   private final long adminSubject;
+  private final String paaTrustStorePath;
 
   private static final int LEGACY_GLOBAL_CHIP_PORT = 5540;
 
   /** @param udpListenPort the UDP listening port, or 0 to pick any available port. */
   private ControllerParams(Builder builder) {
     this.fabricId = builder.fabricId;
+    this.nodeId = builder.nodeId;
     this.udpListenPort = builder.udpListenPort;
     this.controllerVendorId = builder.controllerVendorId;
     this.failsafeTimerSeconds = builder.failsafeTimerSeconds;
@@ -38,10 +41,15 @@ public final class ControllerParams {
     this.operationalCertificate = builder.operationalCertificate;
     this.ipk = builder.ipk;
     this.adminSubject = builder.adminSubject;
+    this.paaTrustStorePath = builder.paaTrustStorePath;
   }
 
   public long getFabricId() {
     return fabricId;
+  }
+
+  public long getNodeId() {
+    return nodeId;
   }
 
   /** Gets the UDP listening port; 0 indicates "any available port" */
@@ -97,6 +105,10 @@ public final class ControllerParams {
     return adminSubject;
   }
 
+  public String getPaaTrustStorePath() {
+    return paaTrustStorePath;
+  }
+
   /** Returns parameters with ephemerally generated operational credentials */
   public static Builder newBuilder() {
     return new Builder();
@@ -119,6 +131,7 @@ public final class ControllerParams {
   /** Builder for {@link ControllerParams}. */
   public static class Builder {
     private long fabricId = 1;
+    private long nodeId = 1;
     private int udpListenPort = LEGACY_GLOBAL_CHIP_PORT + 1;
     private int controllerVendorId = 0xFFFF;
     private int failsafeTimerSeconds = 30;
@@ -132,6 +145,7 @@ public final class ControllerParams {
     @Nullable private byte[] operationalCertificate = null;
     @Nullable private byte[] ipk = null;
     private long adminSubject = 0;
+    private String paaTrustStorePath = null;
 
     private Builder() {}
 
@@ -140,6 +154,14 @@ public final class ControllerParams {
         throw new IllegalArgumentException("fabricId must be > 0");
       }
       this.fabricId = fabricId;
+      return this;
+    }
+
+    public Builder setNodeId(long nodeId) {
+      if (nodeId < 1) {
+        throw new IllegalArgumentException("nodeId must be > 0");
+      }
+      this.nodeId = nodeId;
       return this;
     }
 
@@ -282,6 +304,11 @@ public final class ControllerParams {
      */
     public Builder setAdminSubject(long adminSubject) {
       this.adminSubject = adminSubject;
+      return this;
+    }
+
+    public Builder setPaaTrustStorePath(String paaTrustStorePath) {
+      this.paaTrustStorePath = paaTrustStorePath;
       return this;
     }
 
