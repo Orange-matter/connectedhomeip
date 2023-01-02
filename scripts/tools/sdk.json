@@ -40,6 +40,7 @@
         "window-app": "examples/window-app/common/window-app.zap",
         "app2": "examples/placeholder/linux/apps/app2/config.zap",
         "app1": "examples/placeholder/linux/apps/app1/config.zap",
+        "ping-app": "examples/ping-app/ping-common/ping-app.zap",
         "chef_dimmablelight": "examples/chef/devices/rootnode_dimmablelight_bCwGYSDpoe.zap",
         "chef_contactsensor": "examples/chef/devices/rootnode_contactsensor_lFAGG1bfRO.zap",
         "chef_humiditysensor": "examples/chef/devices/rootnode_humiditysensor_Xyj4gda6Hb.zap",
@@ -283,6 +284,12 @@
         {
             "zapFile": "window-app",
             "output": "zzz_generated/window-app/zap-generated",
+            "zcl": "main",
+            "template": "app-zap"
+        },
+        {
+            "zapFile": "ping-app",
+            "output": "zzz_generated/ping-app/zap-generated",
             "zcl": "main",
             "template": "app-zap"
         }
