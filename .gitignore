@@ -10,6 +10,7 @@
 
 # Build System
 out/
+bin/
 /src/test_driver/nrfconnect/build/
 /src/darwin/Framework/build/
 

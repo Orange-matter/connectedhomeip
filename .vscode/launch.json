@@ -27,6 +27,39 @@
             "cwd": "${workspaceFolder}"
         },
         {
+            "name": "Python controller",
+            "type": "python",
+            "request": "launch",
+            "program": "${workspaceFolder}/out/python_env/bin/chip-device-ctrl",
+            "console": "integratedTerminal",
+            "args": ["--no-ble", "-n", "2"]
+            //"preLaunchTask": "Build Python controller"
+        },
+        {
+            "name": "Chip Cert convert-key",
+            "type": "cppdbg",
+            "request": "launch",
+            "program": "${workspaceFolder}/out/host/chip-cert",
+            "args": [
+                "convert-key",
+                "~/matter/certificats/Orange-Chip-ICA-Key.pem",
+                "-b",
+                "-"
+            ],
+            "stopAtEntry": false,
+            "cwd": "${workspaceFolder}",
+            "environment": [],
+            "externalConsole": false,
+            "MIMode": "gdb",
+            "setupCommands": [
+                {
+                    "description": "Enable pretty-printing for gdb",
+                    "text": "-enable-pretty-printing",
+                    "ignoreFailures": true
+                }
+            ]
+        },
+        {
             "name": "QRCode Tests",
             "type": "cppdbg",
             "request": "launch",
@@ -87,6 +120,35 @@
             ]
         },
         {
+            "name": "LightingApp (Linux)",
+            "type": "cppdbg",
+            "request": "launch",
+            "program": "${workspaceFolder}/bin/chip-lighting-app",
+            "args": [
+                "--discriminator", "128",
+                "--vendor-id", "1000",
+                "--product-id", "32780",
+            ],
+            "stopAtEntry": false,
+            "cwd": "${workspaceFolder}",
+            "environment": [],
+            "externalConsole": false,
+            "linux": {
+                "MIMode": "gdb"
+            },
+            "osx": {
+                "MIMode": "lldb"
+            },
+            "preLaunchTask": "Build Lighting App (Linux)",
+            "setupCommands": [
+                {
+                    "description": "Enable pretty-printing for gdb",
+                    "text": "-enable-pretty-printing",
+                    "ignoreFailures": true
+                }
+            ]
+        },
+        {
             "name": "LightingApp (Tizen) [remote]",
             "type": "cppdbg",
             "request": "launch",
@@ -116,6 +178,126 @@
                 },
                 {
                     "text": "set solib-search-path ${workspaceFolder}/out/tizen-arm-light"
+                }
+            ]
+        },
+        {
+            "name": "PingApp (Linux)",
+            "type": "cppdbg",
+            "request": "launch",
+            "program": "${workspaceFolder}/bin/ping-app",
+            "args": [],
+            "stopAtEntry": false,
+            "cwd": "${workspaceFolder}",
+            "environment": [],
+            "externalConsole": false,
+            "linux": {
+                "MIMode": "gdb"
+            },
+            "osx": {
+                "MIMode": "lldb"
+            },
+            "preLaunchTask": "Build Ping App (Linux)",
+            "setupCommands": [
+                {
+                    "description": "Enable pretty-printing for gdb",
+                    "text": "-enable-pretty-printing",
+                    "ignoreFailures": true
+                }
+            ]
+        },
+        {
+            "name": "Thermostat (Linux)",
+            "type": "cppdbg",
+            "request": "launch",
+            "program": "${workspaceFolder}/bin/chip-thermostat",
+            "args": [],
+            "stopAtEntry": false,
+            "cwd": "${workspaceFolder}",
+            "environment": [],
+            "externalConsole": false,
+            "MIMode": "gdb",
+            "preLaunchTask": "Build Thermostat (Linux)",
+            "setupCommands": [
+                {
+                    "description": "Enable pretty-printing for gdb",
+                    "text": "-enable-pretty-printing",
+                    "ignoreFailures": true
+                }
+            ]
+        },
+        {
+            "name": "Chip Tool - pairing",
+            "type": "cppdbg",
+            "request": "launch",
+            "program": "${workspaceFolder}/bin/chip-tool",
+            "args": ["pairing", "onnetwork-long", "836486", "20202021", "3840"],
+            "stopAtEntry": false,
+            "cwd": "${workspaceFolder}",
+            "environment": [],
+            "externalConsole": false,
+            "linux": {
+                "MIMode": "gdb"
+            },
+            "osx": {
+                "MIMode": "lldb"
+            },
+            "preLaunchTask": "Build Chip Tool",
+            "setupCommands": [
+                {
+                    "description": "Enable pretty-printing for gdb",
+                    "text": "-enable-pretty-printing",
+                    "ignoreFailures": true
+                }
+            ]
+        },
+        {
+            "name": "Chip Tool - discover commissionables",
+            "type": "cppdbg",
+            "request": "launch",
+            "program": "${workspaceFolder}/bin/chip-tool",
+            "args": ["discover", "commissionables", "--commissioner-name", "13"],
+            "stopAtEntry": false,
+            "cwd": "${workspaceFolder}",
+            "environment": [],
+            "externalConsole": false,
+            "linux": {
+                "MIMode": "gdb"
+            },
+            "osx": {
+                "MIMode": "lldb"
+            },
+            "preLaunchTask": "Build Chip Tool",
+            "setupCommands": [
+                {
+                    "description": "Enable pretty-printing for gdb",
+                    "text": "-enable-pretty-printing",
+                    "ignoreFailures": true
+                }
+            ]
+        },
+        {
+            "name": "Chip Tool - light on",
+            "type": "cppdbg",
+            "request": "launch",
+            "program": "${workspaceFolder}/bin/chip-tool",
+            "args": ["onoff", "off", "836486", "1"],
+            "stopAtEntry": false,
+            "cwd": "${workspaceFolder}",
+            "environment": [],
+            "externalConsole": false,
+            "linux": {
+                "MIMode": "gdb"
+            },
+            "osx": {
+                "MIMode": "lldb"
+            },
+            "preLaunchTask": "Build Chip Tool",
+            "setupCommands": [
+                {
+                    "description": "Enable pretty-printing for gdb",
+                    "text": "-enable-pretty-printing",
+                    "ignoreFailures": true
                 }
             ]
         },

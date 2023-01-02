@@ -56,6 +56,8 @@ public:
 
 private:
     CHIP_ERROR CommitConfig(const char * name);
-    inipp::Ini<char> mConfig;
     const char * mName;
+
+protected:
+    inipp::Ini<char> mConfig;
 };

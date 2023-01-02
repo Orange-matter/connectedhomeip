@@ -24,7 +24,13 @@ import android.nfc.NfcAdapter
 import android.os.Bundle
 import android.util.Base64
 import android.util.Log
+import android.util.Xml
+import android.view.Menu
+import android.view.MenuItem
+import android.widget.EditText
 import android.widget.Toast
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.annotation.StringRes
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.fragment.app.Fragment
@@ -39,7 +45,10 @@ import com.google.chip.chiptool.setuppayloadscanner.BarcodeFragment
 import com.google.chip.chiptool.setuppayloadscanner.CHIPDeviceDetailsFragment
 import com.google.chip.chiptool.setuppayloadscanner.CHIPDeviceInfo
 import com.google.chip.chiptool.setuppayloadscanner.CHIPLedgerDetailsFragment
+import com.google.chip.chiptool.util.Persisted
+import com.google.chip.chiptool.util.StringPref
 import org.json.JSONObject
+import org.xmlpull.v1.XmlPullParser
 
 class CHIPToolActivity :
   AppCompatActivity(),
@@ -52,6 +61,8 @@ class CHIPToolActivity :
 
   private var networkType: ProvisionNetworkType? = null
   private var deviceInfo: CHIPDeviceInfo? = null
+
+  private val persisted by lazy { Persisted(this) }
 
   override fun onCreate(savedInstanceState: Bundle?) {
     super.onCreate(savedInstanceState)
@@ -74,7 +85,123 @@ class CHIPToolActivity :
     if (Intent.ACTION_VIEW == intent?.action) {
       onReturnIntent(intent)
     }
+
+    restorePersistentData()
   }
+
+  private fun restorePersistentData() {
+    if (persisted.nodeId.isSet) {
+      ChipClient.nodeId = persisted.nodeId.get()
+    }
+
+    if (persisted.fabricId.isSet) {
+      ChipClient.fabricId = persisted.fabricId.get()
+    }
+  }
+
+  private fun StringPref.init(@StringRes res: Int) { if (!isSet) set(getString(res)) }
+
+  override fun onCreateOptionsMenu(menu: Menu?): Boolean {
+    menuInflater.inflate(R.menu.menu, menu)
+    return true
+  }
+
+  override fun onOptionsItemSelected(item: MenuItem): Boolean = when (item.itemId) {
+    R.id.node_id -> {
+      updateFabricAndNodeId()
+      true
+    }
+    R.id.certs_id -> {
+      loadCerts()
+      true
+    }
+    else -> super.onOptionsItemSelected(item)
+  }
+
+  private fun updateFabricAndNodeId() {
+    val customView = layoutInflater.inflate(R.layout.controller_node_id_dialog, null, false)
+    val fabricIdText = customView.findViewById<EditText>(R.id.fabric_id_text)
+    val nodeIdText = customView.findViewById<EditText>(R.id.node_id_text)
+    persisted.run {
+      if (fabricId.isSet) fabricIdText?.setText(fabricId.get().toString())
+      if (nodeId.isSet) nodeIdText?.setText(nodeId.get().toString())
+    }
+
+    AlertDialog.Builder(this)
+            .setTitle("Assign Fabric and controller node Id")
+            .setPositiveButton(android.R.string.ok) { _, _ ->
+              fabricIdText.text.toString().toLong().let {
+                persisted.fabricId.set(it)
+                ChipClient.fabricId = it
+              }
+              nodeIdText.text.toString().toLong().let {
+                persisted.nodeId.set(it)
+                ChipClient.nodeId = it
+              }
+            }
+            .setNegativeButton(android.R.string.cancel) { _, _ -> }
+            .setView(customView)
+            .create()
+            .show()
+  }
+
+  private val openFileForResult = registerForActivityResult(ActivityResultContracts.OpenDocument()) { it ->
+    it?.let { uri ->
+      contentResolver.openInputStream(uri).use { stream ->
+        Xml.newPullParser()?.let { parser ->
+          parser.setInput(stream, null)
+
+          val map = parseCertsFile(parser)
+
+          with(persisted) {
+            map.run {
+              if (save(valueOf = "root_cert", into = rootCert)
+                && save(valueOf = "root_key", into = rootKey)
+                && save(valueOf = "ica_cert", into = intermediateCert)
+                && save(valueOf = "ica_key", into = intermediateKey)
+              ) {
+                Toast.makeText(this@CHIPToolActivity, "Certs file successfully loaded ", Toast.LENGTH_SHORT).show()
+              }
+            }
+          }
+
+          Log.d("CHIPToolActivity", "Certs file loaded")
+
+          return@registerForActivityResult
+        }
+      }
+
+      Log.e("CHIPToolActivity", "Cannot load or parse Certs file")
+      Toast.makeText(this, "Cannot load or parse: $uri", Toast.LENGTH_SHORT).show()
+    }
+  }
+
+  private fun parseCertsFile(parser: XmlPullParser): Map<String, String> {
+    val map = mutableMapOf<String, String>()
+
+    var event: Int
+    do {
+      event = parser.next()
+      if (event == XmlPullParser.START_TAG && parser.name == "item") {
+          map[parser.getAttributeValue(null,"name")] = parser.nextText()
+      }
+    } while (event != XmlPullParser.END_DOCUMENT)
+    return map
+  }
+
+  private fun loadCerts() {
+    openFileForResult.launch(arrayOf("text/*"))
+  }
+
+  private fun Map<String, String>.save(valueOf: String, into: StringPref) = get(valueOf)
+    ?.let {
+      into.set(it)
+      true
+    }
+    ?: run {
+      Toast.makeText(this@CHIPToolActivity, "Cannot find value for $valueOf", Toast.LENGTH_SHORT).show()
+      false
+    }
 
   override fun onSaveInstanceState(outState: Bundle) {
     outState.putString(ARG_PROVISION_NETWORK_TYPE, networkType?.name)
