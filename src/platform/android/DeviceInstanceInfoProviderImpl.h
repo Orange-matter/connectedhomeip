@@ -32,6 +32,7 @@ public:
     CHIP_ERROR GetPartNumber(char * buf, size_t bufSize) override;
     CHIP_ERROR GetProductURL(char * buf, size_t bufSize) override;
     CHIP_ERROR GetProductLabel(char * buf, size_t bufSize) override;
+    CHIP_ERROR GetVendorId(uint16_t & vendorId) override;
     CHIP_ERROR GetHardwareVersionString(char * buf, size_t bufSize) override;
 
     DeviceInstanceInfoProviderImpl(ConfigurationManagerImpl & configManager) :

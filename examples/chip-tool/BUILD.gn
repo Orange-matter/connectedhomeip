@@ -74,6 +74,8 @@ static_library("chip-tool-utils") {
     #    "commands/pairing/CommissionedListCommand.h",
     "${chip_root}/src/controller/ExamplePersistentStorage.cpp",
     "${chip_root}/src/controller/ExamplePersistentStorage.h",
+    "${chip_root}/src/controller/StaticPersistentStorage.cpp",
+    "${chip_root}/src/controller/StaticPersistentStorage.h",
     "commands/pairing/CloseSessionCommand.cpp",
     "commands/pairing/CloseSessionCommand.h",
     "commands/pairing/OpenCommissioningWindowCommand.cpp",

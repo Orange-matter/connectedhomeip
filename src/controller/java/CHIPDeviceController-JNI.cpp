@@ -270,6 +270,10 @@ JNI_METHOD(jlong, newDeviceController)(JNIEnv * env, jobject self, jobject contr
     err = chip::JniReferences::GetInstance().FindMethod(env, controllerParams, "getFabricId", "()J", &getFabricId);
     SuccessOrExit(err);
 
+    jmethodID getNodeId;
+    err = chip::JniReferences::GetInstance().FindMethod(env, controllerParams, "getNodeId", "()J", &getNodeId);
+    SuccessOrExit(err);
+
     jmethodID getUdpListenPort;
     err = chip::JniReferences::GetInstance().FindMethod(env, controllerParams, "getUdpListenPort", "()I", &getUdpListenPort);
     SuccessOrExit(err);
@@ -340,8 +344,13 @@ JNI_METHOD(jlong, newDeviceController)(JNIEnv * env, jobject self, jobject contr
     err = chip::JniReferences::GetInstance().FindMethod(env, controllerParams, "getAdminSubject", "()J", &getAdminSubject);
     SuccessOrExit(err);
 
+    jmethodID getPaaTrustStorePath;
+    err = chip::JniReferences::GetInstance().FindMethod(env, controllerParams, "getPaaTrustStorePath", "()Ljava/lang/String;", &getPaaTrustStorePath);
+    SuccessOrExit(err);
+
     {
         uint64_t fabricId                  = env->CallLongMethod(controllerParams, getFabricId);
+        uint64_t nodeId                    = env->CallLongMethod(controllerParams, getNodeId);
         uint16_t listenPort                = env->CallIntMethod(controllerParams, getUdpListenPort);
         uint16_t controllerVendorId        = env->CallIntMethod(controllerParams, getControllerVendorId);
         jobject keypairDelegate            = env->CallObjectMethod(controllerParams, getKeypairDelegate);
@@ -357,6 +366,7 @@ JNI_METHOD(jlong, newDeviceController)(JNIEnv * env, jobject self, jobject contr
         uint64_t adminSubject              = env->CallLongMethod(controllerParams, getAdminSubject);
         jobject countryCodeOptional        = env->CallObjectMethod(controllerParams, getCountryCode);
         jobject regulatoryLocationOptional = env->CallObjectMethod(controllerParams, getRegulatoryLocation);
+        jstring paaTrustStorePath          = (jstring) env->CallObjectMethod(controllerParams, getPaaTrustStorePath);
 
 #ifdef JAVA_MATTER_CONTROLLER_TEST
         std::unique_ptr<chip::Controller::ExampleOperationalCredentialsIssuer> opCredsIssuer(
@@ -365,11 +375,12 @@ JNI_METHOD(jlong, newDeviceController)(JNIEnv * env, jobject self, jobject contr
         std::unique_ptr<chip::Controller::AndroidOperationalCredentialsIssuer> opCredsIssuer(
             new chip::Controller::AndroidOperationalCredentialsIssuer());
 #endif
+        // Orange :  acquire nodeId from controllerParams and replace kLocalDeviceId
         wrapper = AndroidDeviceControllerWrapper::AllocateNew(
-            sJVM, self, kLocalDeviceId, fabricId, chip::kUndefinedCATs, &DeviceLayer::SystemLayer(),
+            sJVM, self, nodeId, fabricId, chip::kUndefinedCATs, &DeviceLayer::SystemLayer(),
             DeviceLayer::TCPEndPointManager(), DeviceLayer::UDPEndPointManager(), std::move(opCredsIssuer), keypairDelegate,
             rootCertificate, intermediateCertificate, operationalCertificate, ipk, listenPort, controllerVendorId,
-            failsafeTimerSeconds, attemptNetworkScanWiFi, attemptNetworkScanThread, skipCommissioningComplete, &err);
+            failsafeTimerSeconds, attemptNetworkScanWiFi, attemptNetworkScanThread, skipCommissioningComplete, paaTrustStorePath, &err);
         SuccessOrExit(err);
 
         if (caseFailsafeTimerSeconds > 0)
@@ -677,7 +688,8 @@ JNI_METHOD(void, establishPaseConnectionByAddress)
 JNI_METHOD(void, continueCommissioning)
 (JNIEnv * env, jobject self, jlong handle, jlong devicePtr, jboolean ignoreAttestationFailure)
 {
-    chip::DeviceLayer::StackLock lock;
+// Orange: prevent deadlock, as lock already hold on commissionDevice ?
+//    chip::DeviceLayer::StackLock lock;
     ChipLogProgress(Controller, "continueCommissioning() called.");
     CHIP_ERROR err                                                    = CHIP_NO_ERROR;
     AndroidDeviceControllerWrapper * wrapper                          = AndroidDeviceControllerWrapper::FromJNIHandle(handle);
