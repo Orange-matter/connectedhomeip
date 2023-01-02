@@ -24,15 +24,41 @@ namespace Internal {
 template <class ConfigClass>
 CHIP_ERROR GenericDeviceInstanceInfoProvider<ConfigClass>::GetVendorId(uint16_t & vendorId)
 {
-    vendorId = static_cast<uint16_t>(CHIP_DEVICE_CONFIG_DEVICE_VENDOR_ID);
-    return CHIP_NO_ERROR;
+    ChipError err   = CHIP_NO_ERROR;
+    uint32_t valInt = 0;
+
+    err = mGenericConfigManager.ReadConfigValue(ConfigClass::kConfigKey_VendorId, valInt);
+    if (err == CHIP_DEVICE_ERROR_CONFIG_NOT_FOUND)
+    {
+        vendorId = static_cast<uint16_t>(CHIP_DEVICE_CONFIG_DEVICE_VENDOR_ID);
+        err      = CHIP_NO_ERROR;
+    }
+    else
+    {
+        vendorId = static_cast<uint16_t>(valInt);
+    }
+
+    return err;
 }
 
 template <class ConfigClass>
 CHIP_ERROR GenericDeviceInstanceInfoProvider<ConfigClass>::GetProductId(uint16_t & productId)
 {
-    productId = static_cast<uint16_t>(CHIP_DEVICE_CONFIG_DEVICE_PRODUCT_ID);
-    return CHIP_NO_ERROR;
+    ChipError err   = CHIP_NO_ERROR;
+    uint32_t valInt = 0;
+
+    err = mGenericConfigManager.ReadConfigValue(ConfigClass::kConfigKey_ProductId, valInt);
+    if (err == CHIP_DEVICE_ERROR_CONFIG_NOT_FOUND)
+    {
+        productId = static_cast<uint16_t>(CHIP_DEVICE_CONFIG_DEVICE_PRODUCT_ID);
+        err       = CHIP_NO_ERROR;
+    }
+    else
+    {
+        productId = static_cast<uint16_t>(valInt);
+    }
+
+    return err;
 }
 
 template <class ConfigClass>
