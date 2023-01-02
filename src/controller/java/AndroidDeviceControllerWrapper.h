@@ -167,7 +167,7 @@ public:
                 jobject keypairDelegate, jbyteArray rootCertificate, jbyteArray intermediateCertificate,
                 jbyteArray nodeOperationalCertificate, jbyteArray ipkEpochKey, uint16_t listenPort, uint16_t controllerVendorId,
                 uint16_t failsafeTimerSeconds, bool attemptNetworkScanWiFi, bool attemptNetworkScanThread,
-                bool skipCommissioningComplete, CHIP_ERROR * errInfoOnFailure);
+                bool skipCommissioningComplete, jstring paa_trust_store_path, CHIP_ERROR * errInfoOnFailure);
 
 #ifdef JAVA_MATTER_CONTROLLER_TEST
     chip::Controller::ExampleOperationalCredentialsIssuer * GetAndroidOperationalCredentialsIssuer()
@@ -224,6 +224,8 @@ private:
         mController(std::move(controller)),
         mOpCredsIssuer(std::move(opCredsIssuer))
     {}
+    
+    static const chip::Credentials::AttestationTrustStore* GetAttestationTrustStore(jstring paaTrustStorePath);
 };
 
 inline jlong AndroidDeviceControllerWrapper::ToJNIHandle()
