@@ -1,0 +1,58 @@
+#!/bin/bash
+
+usage() { 
+    echo "Usage: $(basename $0) -r <root certificate> -i <intermediate certificate> -k <root key> -l <intermediate key>"
+    echo ""
+    echo "    Notes :"
+    echo "    1. certificates and keys expected in PEM format"
+    echo "    2. chip-cert tool shall be in the PATH"
+    echo ""
+    exit 1; 
+}
+
+while getopts ":r:i:k:l:" option; do
+    case "${option}" in
+        r)
+            root=${OPTARG}
+            ;;
+        i)
+            intermediate=${OPTARG}
+            ;;
+        k)
+            rkey=${OPTARG}
+            ;;
+        l)
+            ikey=${OPTARG}
+            ;;
+        *)
+            usage
+            ;;
+    esac
+done
+
+# Check arguments
+[ -v root ] && [ -v intermediate ] && [ -v rkey ] && [ -v ikey ]  || usage
+command -v chip-cert || usage
+
+# Compute node of fabric id as a little endian hex string
+convertId() {
+    convertedId=""
+    val=0
+    id=$1
+    for i in {1..8}
+    do
+        val=$((id % 256))
+        id=$((id >> 8))
+        convertedId="${convertedId}$(printf %02X ${val})"
+    done
+    echo $convertedId
+}
+
+# Generate certs.xml for Orange Matter Android app
+echo "<?xml version=\"1.0\" encoding=\"utf-8\"?>"
+echo "<resources>"
+echo "    <item name=\"root_cert\">$(sed -e '/^-/d' ${root} | paste -sd '')/item>"
+echo "    <item name=\"root_key\">$(chip-cert convert-key ${rkey}  -b -)/item>"
+echo "    <item name=\"ica_cert\">$(sed -e '/^-/d' ${intermediate} | paste -sd '')/item>"
+echo "    <item name=\"ica_key\">$(chip-cert convert-key ${ikey}  -b -)/item>"
+echo "</resources>"

@@ -1,0 +1,35 @@
+#!/bin/bash
+
+usage() { 
+    echo "Usage: $(basename $0)  -n <numuric id>"
+    exit 1; 
+}
+
+while getopts ":r:i:k:l:n:f:" option; do
+    case "${option}" in
+        n)
+            node=${OPTARG}
+            ;;
+        *)
+            usage
+            ;;
+    esac
+done
+
+
+# Compute node of fabric id as a little endian hex string
+convertId() {
+    convertedId=""
+    val=0
+    id=$1
+    for i in {1..8}
+    do
+        val=$((id % 256))
+        id=$((id >> 8))
+        convertedId="${convertedId}$(printf %02X ${val})"
+    done
+    echo $convertedId
+}
+
+# Result
+echo "Id=$(echo "0: $(convertId $node)" | xxd -r | base64)"

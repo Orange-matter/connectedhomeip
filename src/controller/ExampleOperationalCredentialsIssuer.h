@@ -84,7 +84,9 @@ public:
     [[deprecated("This class stores the encryption key in clear storage. Don't use it for production code.")]] CHIP_ERROR
     Initialize(PersistentStorageDelegate & storage);
 
-    void SetIssuerId(uint32_t id) { mIssuerId = id; }
+    void SetIssuerId(uint64_t id) { mIssuerId = id; }
+
+    void SetIntermediateIssuerId(uint64_t id) { mIntermediateIssuerId= id; }
 
     void SetCurrentEpoch(uint32_t epoch) { mNow = epoch; }
 
@@ -112,8 +114,8 @@ private:
     Crypto::P256Keypair mIssuer;
     Crypto::P256Keypair mIntermediateIssuer;
     bool mInitialized              = false;
-    uint32_t mIssuerId             = 1;
-    uint32_t mIntermediateIssuerId = 2;
+    uint64_t mIssuerId             = 1;
+    uint64_t mIntermediateIssuerId = 2;
     uint32_t mNow                  = 0;
 
     // By default, let's set validity to 10 years
