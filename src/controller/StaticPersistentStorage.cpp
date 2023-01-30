@@ -4,8 +4,6 @@
 
 using namespace ::chip;
 
-constexpr const char kFabricIdKey[]        = "FabricId";
-
 std::string GetStaticFilename()
 {
     char* matterHome = std::getenv("MATTER_HOME");
@@ -14,7 +12,7 @@ std::string GetStaticFilename()
     return home + "/.matter/store.ini";
 }
 
-CHIP_ERROR StaticPersistentStorage::Init()
+CHIP_ERROR StaticPersistentStorage::Init(const char * name)
 {
     CHIP_ERROR err = CHIP_NO_ERROR;
 
@@ -26,19 +24,4 @@ CHIP_ERROR StaticPersistentStorage::Init()
     ifs.close();
 exit:
     return err;
-}
-
-FabricId StaticPersistentStorage::GetFabricId()
-{
-    CHIP_ERROR err = CHIP_NO_ERROR;
-
-    uint64_t fabricId;
-    uint16_t size = static_cast<uint16_t>(sizeof(fabricId));
-    err           = SyncGetKeyValue(kFabricIdKey, &fabricId, size);
-    if (err == CHIP_NO_ERROR)
-    {
-        return static_cast<FabricId>(Encoding::LittleEndian::HostSwap64(fabricId));
-    }
-
-    return 1UL;
 }

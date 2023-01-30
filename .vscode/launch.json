@@ -236,7 +236,12 @@
             "cwd": "${workspaceFolder}",
             "environment": [],
             "externalConsole": false,
-            "MIMode": "gdb",
+            "linux": {
+                "MIMode": "gdb"
+            },
+            "osx": {
+                "MIMode": "lldb"
+            },
             "preLaunchTask": "Build Chip Tool",
             "setupCommands": [
                 {
@@ -251,12 +256,17 @@
             "type": "cppdbg",
             "request": "launch",
             "program": "${workspaceFolder}/bin/chip-tool",
-            "args": ["discover", "commissionables"],
+            "args": ["discover", "commissionables", "--commissioner-name", "13"],
             "stopAtEntry": false,
             "cwd": "${workspaceFolder}",
             "environment": [],
             "externalConsole": false,
-            "MIMode": "gdb",
+            "linux": {
+                "MIMode": "gdb"
+            },
+            "osx": {
+                "MIMode": "lldb"
+            },
             "preLaunchTask": "Build Chip Tool",
             "setupCommands": [
                 {
@@ -276,7 +286,12 @@
             "cwd": "${workspaceFolder}",
             "environment": [],
             "externalConsole": false,
-            "MIMode": "gdb",
+            "linux": {
+                "MIMode": "gdb"
+            },
+            "osx": {
+                "MIMode": "lldb"
+            },
             "preLaunchTask": "Build Chip Tool",
             "setupCommands": [
                 {
