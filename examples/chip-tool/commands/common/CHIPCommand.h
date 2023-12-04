@@ -20,7 +20,6 @@
 
 #ifdef CONFIG_USE_LOCAL_STORAGE
 #include <controller/ExamplePersistentStorage.h>
-#include <controller/StaticPersistentStorage.h>
 #endif // CONFIG_USE_LOCAL_STORAGE
 
 #include "Command.h"
@@ -152,11 +151,8 @@ protected:
     PersistentStorage mDefaultStorage;
     // TODO: It's pretty weird that we re-init mCommissionerStorage for every
     // identity without shutting it down or something in between...
-    // TODO: ORANGE See what to do with this name conflict
-    // PersistentStorage mCommissionerStorage;
+    PersistentStorage mCommissionerStorage;
 #endif // CONFIG_USE_LOCAL_STORAGE
-
-    StaticPersistentStorage mCommissionerStorage;
     chip::PersistentStorageOperationalKeystore mOperationalKeystore;
     chip::Credentials::PersistentStorageOpCertStore mOpCertStore;
     chip::Crypto::RawKeySessionKeystore mSessionKeystore;

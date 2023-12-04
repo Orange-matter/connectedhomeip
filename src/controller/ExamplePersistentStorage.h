@@ -70,9 +70,7 @@ public:
 
 private:
     CHIP_ERROR CommitConfig(const char * directory, const char * name);
+    inipp::Ini<char> mConfig;
     const char * mName;
     const char * mDirectory;
-
-protected:
-    inipp::Ini<char> mConfig;
 };
