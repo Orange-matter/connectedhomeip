@@ -2,6 +2,62 @@
     "version": "2.0.0",
     "tasks": [
         {
+            "label": "Build Python controller",
+            "type": "shell",
+            "command": "scripts/build_python.sh",
+            "args": ["-m", "platform"],
+            "group": "build",
+            "problemMatcher": []
+        },
+        {
+            "label": "Build Lighting App (Linux)",
+            "type": "shell",
+            "command": "scripts/run_in_build_env.sh",
+            "args": [
+                "./scripts/examples/gn_build_example.sh examples/lighting-app/linux bin"
+            ],
+            "group": "build",
+            "problemMatcher": {
+                "base": "$gcc"
+            }
+        },
+        {
+            "label": "Build Ping App (Linux)",
+            "type": "shell",
+            "command": "scripts/run_in_build_env.sh",
+            "args": [
+                "./scripts/examples/gn_build_example.sh examples/ping-app/linux bin"
+            ],
+            "group": "build",
+            "problemMatcher": {
+                "base": "$gcc"
+            }
+        },
+        {
+            "label": "Build Thermostat (Linux)",
+            "type": "shell",
+            "command": "scripts/run_in_build_env.sh",
+            "args": [
+                "./scripts/examples/gn_build_example.sh examples/thermostat/linux bin"
+            ],
+            "group": "build",
+            "problemMatcher": {
+                "base": "$gcc"
+            }
+        },
+        {
+            "label": "Build Chip Tool",
+            "type": "shell",
+            "command": "scripts/run_in_build_env.sh",
+            "args": [
+                "./scripts/examples/gn_build_example.sh examples/chip-tool bin"
+            ],
+            "group": "build",
+            "problemMatcher": {
+                "base": "$gcc"
+            }
+        },
+        {
             "label": "Build specific example",
             "type": "shell",
             "command": "scripts/run_in_build_env.sh",

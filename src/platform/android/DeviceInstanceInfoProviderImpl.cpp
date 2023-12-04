@@ -73,6 +73,22 @@ CHIP_ERROR DeviceInstanceInfoProviderImpl::GetProductLabel(char * buf, size_t bu
     return Internal::AndroidConfig::ReadConfigValueStr(Internal::AndroidConfig::kConfigKey_ProductLabel, buf, bufSize, dateLen);
 }
 
+CHIP_ERROR DeviceInstanceInfoProviderImpl::GetVendorId(uint16_t &vendorId)
+{
+    CHIP_ERROR err;
+    uint32_t u32VendorId = 0;
+    err = Internal::AndroidConfig::ReadConfigValue(Internal::AndroidConfig::kConfigKey_VendorId, u32VendorId);
+    if (err == CHIP_DEVICE_ERROR_CONFIG_NOT_FOUND)
+    {
+        vendorId = static_cast<uint16_t>(CHIP_DEVICE_CONFIG_DEVICE_VENDOR_ID);
+    }
+    else
+    {
+        vendorId = static_cast<uint16_t>(u32VendorId);
+    }
+    return CHIP_NO_ERROR;
+}
+
 CHIP_ERROR DeviceInstanceInfoProviderImpl::GetProductName(char * buf, size_t bufSize)
 {
     CHIP_ERROR err;

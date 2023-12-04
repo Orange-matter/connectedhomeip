@@ -30,11 +30,10 @@ android {
     sourceSets {
         main {
             java.srcDirs = [
-                    '../../../setup_payload/java/src',
-                    '../../../controller/java/zap-generated',
-                    '../../../controller/java/src',
-                    '../../../platform/android/java',
-                    '../app/src/main/java/com/google/chip/chiptool'
+                    '../../../../src/setup_payload/java/src',
+                    '../../../../src/controller/java/zap-generated',
+                    '../../../../src/controller/java/src',
+                    '../../../../src/platform/android/java'
             ]
         }
     }
@@ -47,4 +46,7 @@ dependencies {
     configurations.chipDeps.dependencies.each {
         project.dependencies.add("implementation", "${it.group}:${it.name}:${it.version}")
     }
+
+    // Orange: Add missing third_party/java_deps (required for javax.annotation.Nullable)
+    implementation "com.google.code.findbugs:jsr305:3.0.2"
 }

@@ -71,9 +71,8 @@ class NsdServiceFinderAndResolver implements NsdManager.DiscoveryListener {
   public void start() {
     multicastLock.acquire();
 
-    this.nsdManager.discoverServices(
-        targetServiceInfo.getServiceType(), NsdManager.PROTOCOL_DNS_SD, this);
-
+    // Orange: ensure stopDiscoveryRunnable is initialized prior to start discoverServices()
+    //         Reason: crashes observed while onServiceFound called while stopDiscoveryRunnable is null
     NsdServiceFinderAndResolver serviceFinderResolver = this;
     this.stopDiscoveryRunnable =
         Executors.newSingleThreadScheduledExecutor()
@@ -92,6 +91,9 @@ class NsdServiceFinderAndResolver implements NsdManager.DiscoveryListener {
                 },
                 BROWSE_SERVICE_TIMEOUT_MS,
                 TimeUnit.MILLISECONDS);
+
+    this.nsdManager.discoverServices(
+        targetServiceInfo.getServiceType(), NsdManager.PROTOCOL_DNS_SD, this);
   }
 
   @Override
