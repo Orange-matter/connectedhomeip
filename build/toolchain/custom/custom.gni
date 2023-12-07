@@ -15,13 +15,13 @@
 declare_args() {
   # C compiler to use for target build.
   # Only relevant with custom_toolchain = "custom".
-  target_cc = ""
+  target_cc = "aarch64-linux-gnu-gcc"
 
   # C++ compiler to use for target build.
   # Only relevant with custom_toolchain = "custom".
-  target_cxx = ""
+  target_cxx = "aarch64-linux-gnu-g++"
 
   # Archive tool to use for target build.
   # Only relevant with custom_toolchain = "custom".
-  target_ar = ""
+  target_ar = "aarch64-linux-gnu-ar"
 }

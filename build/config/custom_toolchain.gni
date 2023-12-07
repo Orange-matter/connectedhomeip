@@ -17,4 +17,6 @@ import("//build_overrides/chip.gni")
 declare_args() {
   # Toolchain to use for target.
   custom_toolchain = ""
+  target_build = ""
+  prpl_sysroot = ""
 }

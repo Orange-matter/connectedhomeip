@@ -18,6 +18,7 @@ import("${build_root}/chip/java/config.gni")
 import("${build_root}/config/compiler/compiler.gni")
 import("${build_root}/config/sysroot.gni")
 import("${build_root}/config/target.gni")
+import("${build_root}/config/custom_toolchain.gni")
 
 if (current_os == "mac" || current_os == "ios") {
   import("${build_root}/config/mac/mac_sdk.gni")
@@ -49,6 +50,11 @@ config("debug_default") {
 
 config("abi_default") {
   cflags = []
+  if (target_build == "prpl") {
+    cflags += [ "-mcpu=cortex-a53"]
+    cflags += [ "-march=armv8-a+crc"]
+    cflags += [ "--sysroot=${prpl_sysroot}" ]
+  }
   if (current_os == "mac" || current_os == "ios") {
     cflags += [
       "-target",

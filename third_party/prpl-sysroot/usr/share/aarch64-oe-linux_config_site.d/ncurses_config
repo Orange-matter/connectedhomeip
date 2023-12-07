@@ -1,0 +1,13 @@
+ac_cv_header_curses_h=${ac_cv_header_curses_h=yes}
+ac_cv_header_inttypes_h=${ac_cv_header_inttypes_h=yes}
+ac_cv_header_ncurses_curses_h=${ac_cv_header_ncurses_curses_h=no}
+ac_cv_header_ncurses_h=${ac_cv_header_ncurses_h=yes}
+ac_cv_header_ncurses_termcap_h=${ac_cv_header_ncurses_termcap_h=no}
+ac_cv_header_stdint_h=${ac_cv_header_stdint_h=yes}
+ac_cv_header_stdio_h=${ac_cv_header_stdio_h=yes}
+ac_cv_header_stdlib_h=${ac_cv_header_stdlib_h=yes}
+ac_cv_header_string_h=${ac_cv_header_string_h=yes}
+ac_cv_header_strings_h=${ac_cv_header_strings_h=yes}
+ac_cv_header_sys_stat_h=${ac_cv_header_sys_stat_h=yes}
+ac_cv_header_sys_types_h=${ac_cv_header_sys_types_h=yes}
+ac_cv_header_unistd_h=${ac_cv_header_unistd_h=yes}
