@@ -39,14 +39,16 @@ static constexpr uint8_t kMaxNumberOfPresetTypes = 6;
 // We will support only one preset of each preset type.
 static constexpr uint8_t kMaxNumberOfPresetsOfEachType = 1;
 
+// For testing the use case where number of presets added exceeds the number of presets supported, we will have the value of
+// kMaxNumberOfPresetsSupported < kMaxNumberOfPresetTypes * kMaxNumberOfPresetsOfEachType
+static constexpr uint8_t kMaxNumberOfPresetsSupported = kMaxNumberOfPresetTypes * kMaxNumberOfPresetsOfEachType - 1;
+
 class ThermostatDelegate : public Delegate
 {
 public:
     static inline ThermostatDelegate & GetInstance() { return sInstance; }
 
-    std::optional<System::Clock::Milliseconds16>
-    GetAtomicWriteTimeout(DataModel::DecodableList<chip::AttributeId> attributeRequests,
-                          System::Clock::Milliseconds16 timeoutRequest) override;
+    std::optional<System::Clock::Milliseconds16> GetMaxAtomicWriteTimeout(chip::AttributeId attributeId) override;
 
     CHIP_ERROR GetPresetTypeAtIndex(size_t index, Structs::PresetTypeStruct::Type & presetType) override;
 
@@ -60,11 +62,11 @@ public:
 
     void InitializePendingPresets() override;
 
-    CHIP_ERROR AppendToPendingPresetList(const Structs::PresetStruct::Type & preset) override;
+    CHIP_ERROR AppendToPendingPresetList(const PresetStructWithOwnedMembers & preset) override;
 
     CHIP_ERROR GetPendingPresetAtIndex(size_t index, PresetStructWithOwnedMembers & preset) override;
 
-    CHIP_ERROR ApplyPendingPresets() override;
+    CHIP_ERROR CommitPendingPresets() override;
 
     void ClearPendingPresetList() override;
 
