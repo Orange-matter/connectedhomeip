@@ -70,6 +70,8 @@ class NsdServiceFinderAndResolver implements NsdManager.DiscoveryListener {
   public void start() {
     multicastLock.acquire();
 
+    // Orange: ensure stopDiscoveryRunnable is initialized prior to start discoverServices()
+    //         Reason: crashes observed while onServiceFound called while stopDiscoveryRunnable is null
     NsdServiceFinderAndResolver serviceFinderResolver = this;
     this.stopDiscoveryRunnable =
         Executors.newSingleThreadScheduledExecutor()

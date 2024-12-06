@@ -83,6 +83,7 @@ public:
     static const Key kConfigKey_Spake2pVerifier;
     static const Key kConfigKey_DeviceTypeId;
     static const Key kConfigKey_DeviceName;
+    static const Key kConfigKey_VendorId;
 
     static CHIP_ERROR Init();
 

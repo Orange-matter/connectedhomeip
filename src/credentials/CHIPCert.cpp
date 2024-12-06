@@ -41,6 +41,7 @@
 #include <lib/support/ScopedBuffer.h>
 #include <lib/support/TimeUtils.h>
 #include <protocols/Protocols.h>
+#include "CertUtils.h"
 
 namespace chip {
 namespace Credentials {
@@ -196,6 +197,7 @@ bool ChipCertificateSet::IsCertInTheSet(const ChipCertificateData * cert) const
     {
         if (cert == &mCerts[i])
         {
+            ChipLogDetail(Crypto, "IsCertInTheSet : true");
             return true;
         }
     }
@@ -257,6 +259,8 @@ CHIP_ERROR ChipCertificateSet::ValidateCert(const ChipCertificateData * cert, Va
 
     err = cert->mSubjectDN.GetCertType(certType);
     SuccessOrExit(err);
+
+    ChipLogDetail(Crypto, "ValidateCert : certType = %hhu", certType);
 
     // Certificate with future-extension marked as "critical" is not allowed.
     VerifyOrExit(!cert->mCertFlags.Has(CertFlags::kExtPresent_FutureIsCritical), err = CHIP_ERROR_CERT_USAGE_NOT_ALLOWED);
@@ -401,17 +405,20 @@ CHIP_ERROR ChipCertificateSet::ValidateCert(const ChipCertificateData * cert, Va
     // recursion in such a case.
     VerifyOrExit(depth < mCertCount, err = CHIP_ERROR_CERT_PATH_TOO_LONG);
 
+    ChipLogDetail(Crypto, "ValidateCert : find a valid CA for issuer = %s", ToString(cert->mIssuerDN).c_str());
     // Search for a valid CA certificate that matches the Issuer DN and Authority Key Id of the current certificate.
     // Fail if no acceptable certificate is found.
     err = FindValidCert(cert->mIssuerDN, cert->mAuthKeyId, context, static_cast<uint8_t>(depth + 1), &caCert);
     if (err != CHIP_NO_ERROR)
     {
+        ChipLogError(Crypto, "ValidateCert : -> not found: %" CHIP_ERROR_FORMAT, err.Format());
         ExitNow(err = CHIP_ERROR_CA_CERT_NOT_FOUND);
     }
 
     // Verify signature of the current certificate against public key of the CA certificate. If signature verification
     // succeeds, the current certificate is valid.
     err = VerifyCertSignature(*cert, *caCert);
+    ChipLogDetail(Crypto, "ValidateCert : VerifyCertSignature = %" CHIP_ERROR_FORMAT, err.Format());
     SuccessOrExit(err);
 
 exit:
@@ -428,20 +435,26 @@ CHIP_ERROR ChipCertificateSet::FindValidCert(const ChipDN & subjectDN, const Cer
     // Default error if we don't find any matching cert.
     err = (depth > 0) ? CHIP_ERROR_CA_CERT_NOT_FOUND : CHIP_ERROR_CERT_NOT_FOUND;
 
+    ChipLogDetail(Crypto, "Looking for DN: %s", ToString(subjectDN).c_str());
     // For each cert in the set...
     for (uint8_t i = 0; i < mCertCount; i++)
     {
         ChipCertificateData * candidateCert = &mCerts[i];
 
+        ChipLogDetail(Crypto, "- Candidate DN: %s", ToString(candidateCert->mSubjectDN).c_str());
         // Skip the certificate if its subject DN and key id do not match the input criteria.
         if (!candidateCert->mSubjectDN.IsEqual(subjectDN))
         {
             continue;
         }
+        ChipLogDetail(Crypto, " -> subject DN matched");
         if (!candidateCert->mSubjectKeyId.data_equal(subjectKeyId))
         {
+            ChipLogError(Crypto, " -> subject keyId NOT matched");
             continue;
         }
+        ChipLogDetail(Crypto, " -> subject keyId matched");
+        ChipLogDetail(Crypto, " => Found candidate");
 
         // Attempt to validate the cert.  If the cert is valid, return it to the caller. Otherwise,
         // save the returned error and continue searching.  If there are no other matching certs this
@@ -449,6 +462,7 @@ CHIP_ERROR ChipCertificateSet::FindValidCert(const ChipDN & subjectDN, const Cer
         err = ValidateCert(candidateCert, context, depth);
         if (err == CHIP_NO_ERROR)
         {
+            ChipLogDetail(Crypto, " -> Valid candidate");
             *certData = candidateCert;
             ExitNow();
         }

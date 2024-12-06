@@ -44,20 +44,23 @@ object ChipClient {
   private lateinit var chipDeviceController: ChipDeviceController
   private lateinit var androidPlatform: AndroidChipPlatform
   /* 0xFFF4 is a test vendor ID, replace with your assigned company ID */
-  const val VENDOR_ID = 0xFFF4
-
+  private const val VENDOR_ID = 0xFFF4
+  
+  var nodeId: Long = 0
+  var fabricId: Long = 0
   private var icdCheckInCallback: ICDCheckInCallback? = null
 
   fun getDeviceController(context: Context): ChipDeviceController {
     getAndroidChipPlatform(context)
 
     if (!this::chipDeviceController.isInitialized) {
-      chipDeviceController =
-        ChipDeviceController(
-          ControllerParams.newBuilder()
-            .setControllerVendorId(VENDOR_ID)
-            .setEnableServerInteractions(true)
-            .build()
+      chipDeviceController = ChipDeviceController(
+        ControllerParams.newBuilder()
+          .setControllerVendorId(VENDOR_ID)
+          .setUdpListenPort(0)
+          .setFabricId(fabricId)
+          .setNodeId(nodeId)
+          .build()
         )
 
       // Set delegate for attestation trust store for device attestation verifier.
